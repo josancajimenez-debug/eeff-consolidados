@@ -7,6 +7,35 @@
   <meta name="theme-color" content="#0b2930">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>&#128202;</text></svg>">
   <title>EEFF Consolidados</title>
+
+  <!-- Tarjeta de presentacion al compartir el enlace (WhatsApp, Teams, redes). -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="EEFF Consolidados">
+  <meta property="og:locale" content="es_CR">
+  <meta property="og:url" content="https://josancajimenez-debug.github.io/eeff-consolidados/">
+  <meta property="og:title" content="EEFF Consolidados - Contabilidad Avanzada con NIIF completas">
+  <meta property="og:description" content="Herramienta educativa interactiva: expansion empresarial, agencias y sucursales, subsidiarias y asociadas. Ejemplos, simuladores, papel de trabajo de consolidacion, casos resueltos y autoevaluacion.">
+  <meta property="og:image" content="https://josancajimenez-debug.github.io/eeff-consolidados/portada.jpg">
+  <meta property="og:image:alt" content="ACC Contadores - Asesoria y Consultoria Contable">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="EEFF Consolidados - Contabilidad Avanzada con NIIF completas">
+  <meta name="twitter:description" content="Herramienta educativa interactiva de contabilidad avanzada bajo NIIF completas (Costa Rica).">
+  <meta name="twitter:image" content="https://josancajimenez-debug.github.io/eeff-consolidados/portada.jpg">
+
+  <!-- Aplica el tema y el tamano de letra antes de pintar, para evitar parpadeo. -->
+  <script>
+    (function () {
+      try {
+        const prefs = JSON.parse(localStorage.getItem("eeff_prefs_v1") || "{}");
+        const sistemaOscuro = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = prefs.theme || (sistemaOscuro ? "dark" : "light");
+        document.documentElement.dataset.font = prefs.font || "normal";
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+        document.documentElement.dataset.font = "normal";
+      }
+    })();
+  </script>
   <style>
     :root {
       --ink: #0f172a;
@@ -878,19 +907,165 @@
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
 
+    /* ===== Componentes agregados: papel de trabajo, graficos, examen ===== */
+    .ws-total td { font-weight: 800; background: #eef3f5; }
+    .ws-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .ws-check.ok { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+    .ws-check.bad { background: #fff1f2; border-color: #fda4af; color: #be123c; }
+    .journal td.num, .journal th.num { text-align: right; white-space: nowrap; }
+
+    .bar-chart { display: grid; gap: 10px; margin-top: 6px; }
+    .bar-row { display: grid; grid-template-columns: minmax(90px, 26%) 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
+    .bar-track { background: #e6ebf2; border-radius: 999px; height: 14px; overflow: hidden; }
+    .bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--brand-grad); transition: width .6s cubic-bezier(.4, 0, .2, 1); }
+    .bar-row strong { font-variant-numeric: tabular-nums; }
+
+    .field-error input { border-color: var(--rose); }
+    .field-msg { display: block; color: var(--rose); font-size: 12px; margin-top: 4px; font-weight: 600; }
+
+    .quiz-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .quiz-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .attempt-list { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+
+    .cert {
+      border: 3px double var(--teal);
+      border-radius: var(--radius);
+      padding: 26px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(13, 148, 136, .06), transparent);
+    }
+    .cert h2 { margin: 0 0 4px; font-size: 24px; }
+    .cert .cert-name { font-size: 27px; font-weight: 800; margin: 14px 0 6px; }
+    .cert .cert-sign { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; }
+    .cert .cert-sign div { min-width: 200px; border-top: 1px solid var(--ink); padding-top: 6px; font-size: 12px; }
+
+    .prefs { display: flex; gap: 6px; align-items: center; }
+    .prefs button { min-height: 32px; padding: 4px 10px; font-size: 12px; }
+
+    /* ===== Tamano de letra ajustable (accesibilidad) =====
+       La interfaz esta construida en px; el zoom escala todo el bloque de forma
+       uniforme sin tener que reescribir cada medida. */
+    html[data-font="grande"] .app,
+    html[data-font="grande"] .print-sheet { zoom: 1.12; }
+    html[data-font="mayor"] .app,
+    html[data-font="mayor"] .print-sheet { zoom: 1.25; }
+
+    /* ===== Modo oscuro =====
+       El tema se fija en <html data-theme="..."> desde el script del <head>
+       (preferencia guardada o la del sistema operativo). */
+    html[data-theme="dark"] {
+      --ink: #e6edf3;
+      --muted: #9db0c2;
+      --line: #24313f;
+      --panel: #131c26;
+      --canvas: #0a1017;
+      --focus: #8b9dff;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+      --shadow-lg: 0 22px 48px rgba(0, 0, 0, .6);
+      color-scheme: dark;
+    }
+
+    html[data-theme="dark"] body {
+      background:
+        radial-gradient(1100px 560px at 100% -10%, #16204a 0%, transparent 58%),
+        radial-gradient(900px 480px at -10% 8%, #0b3b38 0%, transparent 52%),
+        var(--canvas);
+    }
+
+    html[data-theme="dark"] button { background: #1b2735; color: var(--ink); border-color: var(--line); }
+    html[data-theme="dark"] button:hover { border-color: #4b6079; }
+    html[data-theme="dark"] button.ghost { background: transparent; }
+    html[data-theme="dark"] button.primary { background: var(--brand-grad); color: #fff; }
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] textarea { background: #101a24; color: var(--ink); border-color: var(--line); }
+    html[data-theme="dark"] input::placeholder,
+    html[data-theme="dark"] textarea::placeholder { color: #6e8299; }
+
+    html[data-theme="dark"] .panel-head { background: linear-gradient(180deg, #17222e, #131c26); }
+    html[data-theme="dark"] .tabs { background: #101a24; }
+    html[data-theme="dark"] .tabs button { color: var(--muted); }
+    html[data-theme="dark"] .tabs button:hover { background: #1d2937; color: var(--ink); }
+    html[data-theme="dark"] .journal th { background: #1a2532; color: #c6d4e2; }
+    html[data-theme="dark"] .mini,
+    html[data-theme="dark"] .rubric label,
+    html[data-theme="dark"] .checklist .check,
+    html[data-theme="dark"] .concept,
+    html[data-theme="dark"] .quiz-options button { background: #16202b; }
+    html[data-theme="dark"] .flow div { background: #16202b; }
+    html[data-theme="dark"] .flow div::before { background: #1e3a8a; color: #dbeafe; }
+    html[data-theme="dark"] .stat { background: linear-gradient(180deg, #16202b, #121a24); }
+    html[data-theme="dark"] .result-box,
+    html[data-theme="dark"] .empty { background: #101a24; }
+    html[data-theme="dark"] .empty { border-color: #35485c; }
+    html[data-theme="dark"] .progress { background: #1d2937; }
+    html[data-theme="dark"] .checklist .tick,
+    html[data-theme="dark"] .concept .tick { background: #1d2937; color: var(--muted); }
+
+    html[data-theme="dark"] .info { background: #0d2b2a; border-left-color: #2dd4bf; color: #d5f5f1; }
+    html[data-theme="dark"] .warning { background: #2c2110; border-left-color: #f59e0b; color: #fbe6c4; }
+    html[data-theme="dark"] .danger { background: #2d1319; border-left-color: #fb7185; color: #fbd5db; }
+    html[data-theme="dark"] .concept.read { background: #0f2a1d; border-color: #16a34a; }
+    html[data-theme="dark"] .checklist .check.done { background: #0f2a1d; border-color: #16a34a; }
+    html[data-theme="dark"] .quiz-options button.correct { background: #0f2a1d; border-color: #16a34a; }
+    html[data-theme="dark"] .quiz-options button.incorrect { background: #2d1319; border-color: #fb7185; }
+    html[data-theme="dark"] .quiz-options button:hover { background: #1d2937; }
+
+    html[data-theme="dark"] .badge { background: #123c38; color: #7ee7d8; }
+    html[data-theme="dark"] .badge.blue { background: #17264d; color: #a5b8ff; }
+    html[data-theme="dark"] .badge.amber { background: #3a2a10; color: #fcd34d; }
+    html[data-theme="dark"] .badge.rose { background: #3a1620; color: #fda4af; }
+    html[data-theme="dark"] .badge.violet { background: #26194a; color: #c4b5fd; }
+    html[data-theme="dark"] .term-chips button.badge { border-color: #2c3f66; }
+    html[data-theme="dark"] .term-chips button.badge:hover { background: #1e3a8a; color: #e0e7ff; }
+
+    html[data-theme="dark"] .niif18-legend .op { background: #0d2b2a; color: #5eead4; border-color: #155e58; }
+    html[data-theme="dark"] .niif18-legend .inv { background: #17264d; color: #a5b8ff; border-color: #2c3f66; }
+    html[data-theme="dark"] .niif18-legend .fin { background: #2c2110; color: #fcd34d; border-color: #6b4b17; }
+
+    html[data-theme="dark"] .ws-total { background: #1a2532; }
+    html[data-theme="dark"] .ws-check.ok { background: #0f2a1d; border-color: #16a34a; color: #86efac; }
+    html[data-theme="dark"] .ws-check.bad { background: #2d1319; border-color: #fb7185; color: #fda4af; }
+    html[data-theme="dark"] .bar-track { background: #1d2937; }
+    html[data-theme="dark"] .field-error input { border-color: #fb7185; }
+
     .print-sheet { display: none; }
 
     @media print {
-      .sidebar, .toolbar, .menu-toggle, .backdrop, .toast, #printCasos, #printUnit, .del-profile, .rename-profile, .reset-profile, [data-caso-filter] { display: none !important; }
+      .sidebar, .toolbar, .menu-toggle, .backdrop, .toast, #printCasos, #printUnit, .del-profile, .rename-profile, .reset-profile, [data-caso-filter], .prefs, .quiz-actions, [data-import], #printReport, #printCert { display: none !important; }
       .app { grid-template-columns: 1fr; }
       .main { padding: 0; }
       .panel { box-shadow: none; border-color: #cbd5e1; break-inside: avoid; }
       details > div { display: block !important; }
       .topbar h2 { color: #0f172a !important; -webkit-text-fill-color: #0f172a; }
-      body.printing-unit .app { display: none !important; }
-      body.printing-unit .print-sheet { display: block !important; padding: 8px; }
+      body.printing-unit .app, body.printing-cert .app { display: none !important; }
+      body.printing-unit .print-sheet, body.printing-cert .print-sheet { display: block !important; padding: 8px; }
       .print-sheet h1 { font-size: 20px; margin: 0 0 4px; }
       .print-sheet .journal, .print-sheet .result-box { break-inside: avoid; }
+
+      /* El papel siempre se imprime en claro, aunque la pantalla este en modo oscuro. */
+      html[data-theme="dark"] body,
+      html[data-theme="dark"] .panel,
+      html[data-theme="dark"] .mini,
+      html[data-theme="dark"] .result-box,
+      html[data-theme="dark"] .journal th,
+      html[data-theme="dark"] .flow div,
+      html[data-theme="dark"] .stat,
+      html[data-theme="dark"] .info,
+      html[data-theme="dark"] .warning,
+      html[data-theme="dark"] .danger,
+      html[data-theme="dark"] .print-sheet { background: #fff !important; color: #0f172a !important; }
+      html[data-theme="dark"] .footer-note, html[data-theme="dark"] .small-label { color: #475569 !important; }
     }
   </style>
 </head>
@@ -915,9 +1090,18 @@
         <div class="profile-actions">
           <button class="primary" id="saveProfile">Guardar perfil</button>
         </div>
+        <p class="footer-note" id="roleHint" style="color:#c5dedb;margin:8px 0 0"></p>
       </div>
 
-      <nav class="nav" id="unitNav"></nav>
+      <nav class="nav" id="unitNav" aria-label="Unidades del curso"></nav>
+
+      <div class="profile-box">
+        <span class="small-label" id="prefsLabel">Apariencia</span>
+        <div class="prefs" role="group" aria-labelledby="prefsLabel">
+          <button id="themeToggle" class="ghost" style="color:#eef8f7;border-color:#315c64" aria-pressed="false">Modo oscuro</button>
+          <button id="fontToggle" class="ghost" style="color:#eef8f7;border-color:#315c64" title="Cambiar el tamano de la letra">A+</button>
+        </div>
+      </div>
 
       <div class="sidebar-note">
         HTML portable. El progreso se guarda en este navegador. Para reportes centralizados se requiere una base de datos o servidor institucional.
@@ -931,13 +1115,13 @@
           <h2 id="screenTitle">Panel de aprendizaje</h2>
           <p id="screenSubtitle">Contabilidad avanzada aplicada a expansion empresarial.</p>
         </div>
-        <div class="toolbar">
-          <button id="goDashboard">Panel</button>
-          <button id="goGlossary">Glosario</button>
-          <button id="goCasos">Casos resueltos</button>
-          <button id="goReport">Reporte</button>
-          <button id="goBibliography">Bibliografia</button>
-          <button id="goManual">Manual</button>
+        <div class="toolbar" role="navigation" aria-label="Secciones">
+          <button id="goDashboard" data-screen="dashboard">Panel</button>
+          <button id="goGlossary" data-screen="glossary">Glosario</button>
+          <button id="goCasos" data-screen="casos">Casos resueltos</button>
+          <button id="goReport" data-screen="report">Reporte</button>
+          <button id="goBibliography" data-screen="bibliography">Bibliografia</button>
+          <button id="goManual" data-screen="manual">Manual</button>
         </div>
       </div>
 
@@ -952,7 +1136,7 @@
     <div class="backdrop" id="backdrop"></div>
   </div>
 
-  <script>
+  <script id="appScript">
     const units = [
       {
         id: "u1",
@@ -1819,6 +2003,9 @@
     ];
 
     const STORAGE_KEY = "contaexpand_edu_v1";
+    // Version del esquema de datos guardado. Permite migrar respaldos antiguos
+    // sin perder el progreso cuando la estructura cambia.
+    const SCHEMA_VERSION = 2;
     let store = readStore();
     let activeProfile = store.activeProfile || "Estudiante demo";
     let activeRole = store.role || "estudiante";
@@ -1832,12 +2019,79 @@
 
     const $ = (id) => document.getElementById(id);
 
-    function readStore() {
+    // ===== Preferencias de apariencia (tema y tamano de letra) =====
+    // Se guardan aparte del progreso academico: son del equipo, no del perfil.
+    const PREFS_KEY = "eeff_prefs_v1";
+    const FONT_STEPS = ["normal", "grande", "mayor"];
+
+    function readPrefs() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { profiles: {} };
+        return JSON.parse(localStorage.getItem(PREFS_KEY)) || {};
       } catch {
-        return { profiles: {} };
+        return {};
       }
+    }
+
+    let prefs = readPrefs();
+
+    function applyPrefs() {
+      const root = document.documentElement;
+      if (!root) return;
+      root.dataset.theme = prefs.theme === "dark" ? "dark" : "light";
+      root.dataset.font = FONT_STEPS.includes(prefs.font) ? prefs.font : "normal";
+      const tBtn = $("themeToggle");
+      if (tBtn) {
+        const oscuro = prefs.theme === "dark";
+        tBtn.textContent = oscuro ? "Modo claro" : "Modo oscuro";
+        tBtn.setAttribute("aria-pressed", String(oscuro));
+        tBtn.title = oscuro ? "Cambiar a fondo claro" : "Cambiar a fondo oscuro";
+      }
+      const fBtn = $("fontToggle");
+      if (fBtn) {
+        const etiquetas = { normal: "A+", grande: "A++", mayor: "A" };
+        fBtn.textContent = etiquetas[root.dataset.font] || "A+";
+        fBtn.setAttribute("aria-label", `Tamano de letra: ${root.dataset.font}. Pulse para cambiarlo.`);
+      }
+    }
+
+    function savePrefs() {
+      try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
+      applyPrefs();
+    }
+
+    function readStore() {
+      let raw;
+      try {
+        raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch {
+        raw = null;
+      }
+      return migrateStore(raw || { profiles: {} });
+    }
+
+    // Normaliza un store de cualquier version conocida a la version actual.
+    // v1 -> v2: se agregan intentos de autoevaluacion (quizAttempts), resultados
+    // del examen integrador (exam) y datos institucionales del reporte (curso).
+    function migrateStore(data) {
+      const s = (data && typeof data === "object") ? data : {};
+      if (!s.profiles || typeof s.profiles !== "object") s.profiles = {};
+      Object.keys(s.profiles).forEach(name => {
+        const p = s.profiles[name];
+        if (!p || typeof p !== "object") { delete s.profiles[name]; return; }
+        if (!p.notes) p.notes = {};
+        if (!p.quiz) p.quiz = {};
+        if (!p.complete) p.complete = {};
+        if (!p.activity) p.activity = {};
+        if (!p.rubric) p.rubric = {};
+        if (!p.quizAttempts) p.quizAttempts = {};
+        if (!p.exam) p.exam = null;
+        if (!p.role) p.role = "estudiante";
+      });
+      if (!s.curso || typeof s.curso !== "object") {
+        s.curso = { institucion: "", curso: "", grupo: "", docente: "", periodo: "" };
+      }
+      s.schemaVersion = SCHEMA_VERSION;
+      return s;
     }
 
     // Persiste el store. Actualiza la marca de tiempo del perfil activo aqui,
@@ -1861,6 +2115,8 @@
           complete: {},
           activity: {},
           rubric: {},
+          quizAttempts: {},
+          exam: null,
           updatedAt: new Date().toISOString()
         };
         created = true;
@@ -1871,6 +2127,8 @@
       if (!current.quiz) current.quiz = {};
       if (!current.complete) current.complete = {};
       if (!current.rubric) current.rubric = {};
+      if (!current.quizAttempts) current.quizAttempts = {};
+      if (current.exam === undefined) current.exam = null;
       store.activeProfile = activeProfile;
       store.role = activeRole;
       current.role = activeRole;
@@ -1978,6 +2236,9 @@
         el = document.createElement("div");
         el.id = "toast";
         el.className = "toast";
+        // Region viva: los lectores de pantalla anuncian el aviso sin robar el foco.
+        el.setAttribute("role", "status");
+        el.setAttribute("aria-live", "polite");
         document.body.appendChild(el);
       }
       el.textContent = message;
@@ -1990,6 +2251,11 @@
       activeScreen = screen;
       ["dashboard", "unit", "glossary", "casos", "report", "bibliography", "manual"].forEach(name => {
         $(`${name}Screen`).classList.toggle("active", name === screen);
+      });
+      // Marca la seccion vigente para lectores de pantalla.
+      document.querySelectorAll("[data-screen]").forEach(btn => {
+        if (btn.dataset.screen === screen) btn.setAttribute("aria-current", "page");
+        else btn.removeAttribute("aria-current");
       });
       render();
       closeDrawer();
@@ -2085,8 +2351,9 @@
       const p = profile();
       $("unitNav").innerHTML = units.map((unit, index) => {
         const done = `${unitProgress(unit, p)}%`;
+        const enCurso = activeScreen === "unit" && activeUnit === index;
         return `
-          <button class="${activeScreen === "unit" && activeUnit === index ? "active" : ""}" data-unit="${index}">
+          <button class="${enCurso ? "active" : ""}" data-unit="${index}"${enCurso ? ` aria-current="page"` : ""} aria-label="${unit.short}: ${done} de avance">
             <span class="num">${index + 1}</span>
             <span>${unit.short}</span>
             <span class="done">${done}</span>
@@ -2189,6 +2456,7 @@
             <div class="panel-head"><h3>Panel docente</h3><span class="badge blue">Formativo</span></div>
             <div class="panel-body">
               <p class="info">Use la rubrica del reporte para registrar observaciones por unidad. En HTML portable, el reporte pertenece al navegador usado.</p>
+              <p class="warning"><strong>Alcance del acceso por rol.</strong> La clave de Docente/Administrador se guarda ofuscada en este mismo navegador y el rol se elige desde la barra lateral. Cualquier persona con acceso al equipo puede cambiarlo editando los datos locales del navegador: sirve para ordenar el uso en clase, no para calificar con valor oficial. Las notas con efecto academico deben respaldarse fuera de la app.</p>
               <div class="rubric">
                 <label><input type="checkbox" disabled> Identifica correctamente la figura juridico-contable.</label>
                 <label><input type="checkbox" disabled> Sustenta el tratamiento con NIIF completas o bibliografia local.</label>
@@ -2217,15 +2485,17 @@
       const unit = units[activeUnit];
       $("screenTitle").textContent = unit.title;
       $("screenSubtitle").textContent = unit.subtitle;
+      const tabs = unitTabs(unit);
+      if (!tabs.includes(activeTab)) activeTab = "contenido";
       $("unitScreen").innerHTML = `
         <div class="layout">
           <section class="panel">
-            <div class="tabs">
-              ${["contenido", "ejemplo", "ejercicios", "simulador", "autoevaluacion", "notas"].map(tab => `
-                <button class="${activeTab === tab ? "active" : ""}" data-tab="${tab}">${tabLabel(tab)}</button>
+            <div class="tabs" role="tablist" aria-label="Secciones de la unidad">
+              ${tabs.map(tab => `
+                <button class="${activeTab === tab ? "active" : ""}" data-tab="${tab}" role="tab" id="tab-${tab}" aria-selected="${activeTab === tab}" aria-controls="tabBody" tabindex="${activeTab === tab ? "0" : "-1"}">${tabLabel(tab)}</button>
               `).join("")}
             </div>
-            <div class="panel-body" id="tabBody"></div>
+            <div class="panel-body" id="tabBody" role="tabpanel" aria-labelledby="tab-${activeTab}" tabindex="0"></div>
           </section>
           <aside class="panel">
             <div class="panel-head">
@@ -2244,6 +2514,17 @@
         btn.addEventListener("click", () => {
           activeTab = btn.dataset.tab;
           renderUnit();
+        });
+        // Navegacion con flechas dentro del grupo de pestanas (patron WAI-ARIA).
+        btn.addEventListener("keydown", (e) => {
+          const paso = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+          if (!paso) return;
+          e.preventDefault();
+          const i = tabs.indexOf(btn.dataset.tab);
+          activeTab = tabs[(i + paso + tabs.length) % tabs.length];
+          renderUnit();
+          const nuevo = $(`tab-${activeTab}`);
+          if (nuevo && nuevo.focus) nuevo.focus();
         });
       });
       document.querySelectorAll("[data-unit-nav]").forEach(btn => {
@@ -2285,12 +2566,21 @@
       });
     }
 
+    // Pestanas de la unidad. El papel de trabajo solo aparece donde hay
+    // consolidacion o combinacion de estados (unidades 2 y 3).
+    function unitTabs(unit) {
+      const base = ["contenido", "ejemplo", "ejercicios", "simulador"];
+      if (unit.worksheet) base.push("papel");
+      return base.concat(["autoevaluacion", "notas"]);
+    }
+
     function tabLabel(tab) {
       return {
         contenido: "Contenido",
         ejemplo: "Ejemplo",
         ejercicios: "Ejercicios",
         simulador: "Simulador",
+        papel: "Papel de trabajo",
         autoevaluacion: "Autoevaluacion",
         notas: "Notas"
       }[tab];
@@ -2315,7 +2605,7 @@
               <p class="small-label" style="color:var(--muted)">Lee cada concepto y marcalo. Al completar todos obtienes el 15% de avance.</p>
               <ul class="concept-list">
                 ${unit.concepts.map((item, i) => `
-                  <li class="concept ${conceptRead(unit, i) ? "read" : ""}" data-concept="${i}" role="button" tabindex="0">
+                  <li class="concept ${conceptRead(unit, i) ? "read" : ""}" data-concept="${i}" role="button" tabindex="0" aria-pressed="${conceptRead(unit, i)}">
                     <span class="tick">${conceptRead(unit, i) ? "&#10003;" : "&#9711;"}</span>
                     <span>${item}</span>
                   </li>
@@ -2464,30 +2754,141 @@
       `;
     }
 
+    // Campos del simulador que representan porcentajes (rango valido 0-100).
+    const PCT_FIELDS = ["soldPercent", "ownership", "associatePct"];
+
     function simulatorHtml(unit) {
       return `
         <div class="info">
           <strong>Datos del caso para digitar:</strong>
           <ul>
-            ${unit.simulator.fields.map(([, label, value]) => `<li>${label}: ${money(value)}</li>`).join("")}
+            ${unit.simulator.fields.map(([key, label, value]) => `<li>${label}: ${PCT_FIELDS.includes(key) ? pct(value) : money(value)}</li>`).join("")}
           </ul>
         </div>
         <div class="form-grid">
-          ${unit.simulator.fields.map(([key, label]) => `
-            <label>
-              <span class="small-label" style="color:var(--muted)">${label}</span>
-              <input id="${key}" type="number" placeholder="Digite el dato del caso">
+          ${unit.simulator.fields.map(([key, label]) => {
+            const esPct = PCT_FIELDS.includes(key);
+            return `
+            <label id="wrap-${key}">
+              <span class="small-label" style="color:var(--muted)">${label}${esPct ? " (%)" : ""}</span>
+              <input id="${key}" type="number" min="0" ${esPct ? `max="100"` : ""} step="0.01" inputmode="decimal"
+                     aria-describedby="msg-${key}" placeholder="Digite el dato del caso">
+              <span class="field-msg" id="msg-${key}"></span>
             </label>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
-        <div class="result-box" id="simResult">Digite los datos del caso para calcular el resultado esperado.</div>
+        <div class="result-box" id="simResult" role="status" aria-live="polite">Digite los datos del caso para calcular el resultado esperado.</div>
       `;
     }
 
+    // Valida los datos digitados: obligatorios, numericos, no negativos y, en los
+    // porcentajes, dentro del rango 0-100. Devuelve la lista de errores y marca
+    // el campo afectado en pantalla.
+    function validateSimulator(unit) {
+      const errores = [];
+      let vacios = 0;
+      unit.simulator.fields.forEach(([key, label]) => {
+        const input = $(key);
+        const raw = String(input && input.value !== undefined ? input.value : "").trim();
+        let msg = "";
+        if (raw === "") {
+          vacios++;
+        } else {
+          const n = Number(raw);
+          if (!isFinite(n)) msg = "Digite un numero valido.";
+          else if (n < 0) msg = "No se admiten valores negativos.";
+          else if (PCT_FIELDS.includes(key) && n > 100) msg = "El porcentaje no puede superar 100.";
+        }
+        const msgEl = $("msg-" + key);
+        if (msgEl) msgEl.textContent = msg;
+        const wrap = $("wrap-" + key);
+        if (wrap && wrap.classList) wrap.classList.toggle("field-error", !!msg);
+        if (msg) errores.push(`${label}: ${msg}`);
+      });
+      return { errores, vacios };
+    }
+
+    // Verifica la partida doble de un juego de asientos y devuelve el distintivo
+    // de cuadre que se muestra bajo la tabla.
+    function journalCheck(rows) {
+      const suma = (i) => rows.reduce((t, r) => t + (Number(String(r[i]).replace(/[^0-9.\-]/g, "")) || 0), 0);
+      const debe = suma(1);
+      const haber = suma(2);
+      const ok = Math.abs(debe - haber) < 0.005;
+      return `<div class="ws-check ${ok ? "ok" : "bad"}" role="status">${ok ? "&#10003;" : "&#9888;"} Partida doble: debe ${money(debe)} = haber ${money(haber)}${ok ? "" : " (revise el asiento)"}</div>`;
+    }
+
+    // Construye el asiento de diario que corresponde a los datos digitados.
+    // El objetivo didactico es que el estudiante vea el registro, no solo la cifra.
+    function simulatorJournal(unit) {
+      const v = (id) => Number($(id).value);
+      if (unit.id === "u1") {
+        const cogs = v("inventoryCost") * v("soldPercent") / 100;
+        return [
+          ["Cuentas por cobrar o efectivo", v("salesAmount"), "", "Venta al cliente final (NIIF 15: control transferido)"],
+          ["Ventas", "", v("salesAmount"), "Ingreso de actividades ordinarias"],
+          ["Costo de ventas", cogs, "", `Costo del ${pct(v("soldPercent"))} del inventario enviado`],
+          ["Inventario", "", cogs, "Salida de inventario (NIC 2)"],
+          ["Gastos de distribucion", v("distributionExpense"), "", "Gasto del canal"],
+          ["Efectivo", "", v("distributionExpense"), "Pago de gastos de distribucion"]
+        ];
+      }
+      if (unit.id === "u2") {
+        return [
+          ["Inventario - Sucursal", v("shipment"), "", "Libros de la sucursal: recepcion de mercaderia"],
+          ["Casa central", "", v("shipment"), "Cuenta reciproca (no es una venta)"],
+          ["Efectivo o clientes", v("branchSales"), "", "Ventas de la sucursal a terceros"],
+          ["Ventas", "", v("branchSales"), "Ingreso de la sucursal"],
+          ["Costo de ventas", v("shipment"), "", "Costo de la mercaderia vendida"],
+          ["Inventario - Sucursal", "", v("shipment"), "Salida del inventario de sucursal"],
+          ["Gastos de venta", v("branchExpenses"), "", "Gastos propios de la sucursal"],
+          ["Efectivo", "", v("branchExpenses"), "Pago de gastos"],
+          ["Casa central", v("reciprocalBalance"), "", "Eliminacion en el estado combinado"],
+          ["Sucursal", "", v("reciprocalBalance"), "Eliminacion de la cuenta reciproca"]
+        ];
+      }
+      if (unit.id === "u3") {
+        const part = v("subProfit") * v("ownership") / 100;
+        const divs = v("dividends") * v("ownership") / 100;
+        return [
+          ["Inversion en subsidiaria", v("purchasePrice"), "", `Adquisicion del ${pct(v("ownership"))} (NIIF 3)`],
+          ["Efectivo", "", v("purchasePrice"), "Pago de la contraprestacion"],
+          ["Inversion en subsidiaria", part, "", "Participacion en el resultado del periodo"],
+          ["Ingreso por participacion", "", part, "Categoria de inversion (NIIF 18)"],
+          ["Efectivo", divs, "", "Dividendos cobrados"],
+          ["Inversion en subsidiaria", "", divs, "Los dividendos reducen el valor en libros"]
+        ];
+      }
+      if (unit.id === "u4") {
+        const part = v("associateProfit") * v("associatePct") / 100;
+        const divs = v("associateDividends") * v("associatePct") / 100;
+        return [
+          ["Inversion en asociada", v("initialCost"), "", `Costo inicial del ${pct(v("associatePct"))} (NIC 28)`],
+          ["Efectivo", "", v("initialCost"), "Pago de la inversion"],
+          ["Inversion en asociada", part, "", "Participacion en el resultado de la asociada"],
+          ["Ingreso por participacion", "", part, "Categoria de inversion (NIIF 18)"],
+          ["Efectivo", divs, "", "Dividendos recibidos"],
+          ["Inversion en asociada", "", divs, "Reduccion del importe en libros"]
+        ];
+      }
+      return [];
+    }
+
     function calculateSimulator(unit) {
-      const missing = unit.simulator.fields.some(([key]) => $(key).value === "");
-      if (missing) {
-        $("simResult").innerHTML = "Digite todos los datos del caso para calcular el resultado esperado.";
+      const { errores, vacios } = validateSimulator(unit);
+      if (vacios === unit.simulator.fields.length && !errores.length) {
+        $("simResult").innerHTML = "Digite los datos del caso para calcular el resultado esperado.";
+        return;
+      }
+      if (errores.length || vacios) {
+        $("simResult").innerHTML = `
+          <strong>Revise los datos antes de calcular:</strong>
+          <ul style="margin:8px 0 0;padding-left:20px">
+            ${vacios ? `<li>Faltan ${vacios} dato(s) por digitar.</li>` : ""}
+            ${errores.map(e => `<li>${escapeHtml(e)}</li>`).join("")}
+          </ul>
+        `;
         return;
       }
       let html = "";
@@ -2570,7 +2971,14 @@
         ];
         simNota = "La participacion en resultados de asociadas se presenta en la categoria de inversion (NIIF 18).";
       }
-      const combined = html + niif18Block(simFilas, simNota);
+      const asiento = simulatorJournal(unit);
+      const bloqueAsiento = asiento.length
+        ? `<h4 style="margin:14px 0 6px">Asiento de diario generado</h4>
+           <p class="footer-note" style="margin:0 0 4px">Registro que corresponde a los datos digitados. Comparelo con el que usted preparo.</p>
+           ${journalTable(asiento)}
+           ${journalCheck(asiento)}`
+        : "";
+      const combined = html + bloqueAsiento + niif18Block(simFilas, simNota);
       lastSimResult[unit.id] = combined;
       $("simResult").innerHTML = combined;
       if (markActivity(unit.id, "simulator")) refreshUnitProgress();
@@ -3160,8 +3568,13 @@
 
     function render() {
       ensureProfile();
+      applyPrefs();
       $("profileName").value = activeProfile;
       $("roleSelect").value = activeRole;
+      // Aviso permanente sobre el alcance real del control de acceso por rol.
+      $("roleHint").textContent = ELEVATED_ROLES.includes(activeRole)
+        ? "Rol elevado activo. La clave se guarda solo en este navegador: es un control local, no una autenticacion en servidor."
+        : "Docente y Administrador piden una clave guardada en este navegador. Es un control local (disuasorio), no seguridad real.";
       $("profileList").innerHTML = Object.keys(store.profiles || {}).map(name => `<option value="${escapeHtml(name)}"></option>`).join("");
       renderNav();
       if (activeScreen === "dashboard") renderDashboard();
@@ -3193,6 +3606,19 @@
 
     $("menuToggle").addEventListener("click", () => toggleSidebar());
     $("backdrop").addEventListener("click", () => toggleSidebar(false));
+
+    $("themeToggle").addEventListener("click", () => {
+      prefs.theme = prefs.theme === "dark" ? "light" : "dark";
+      savePrefs();
+      toast(prefs.theme === "dark" ? "Modo oscuro activado" : "Modo claro activado");
+    });
+
+    $("fontToggle").addEventListener("click", () => {
+      const i = FONT_STEPS.indexOf(prefs.font);
+      prefs.font = FONT_STEPS[(i + 1) % FONT_STEPS.length];
+      savePrefs();
+      toast("Tamano de letra: " + prefs.font);
+    });
 
     $("roleSelect").addEventListener("change", () => {
       const target = $("roleSelect").value;

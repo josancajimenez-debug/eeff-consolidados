@@ -29,7 +29,10 @@ function makeEl() {
   return el;
 }
 const els = {};
+const docElement = makeEl();
+docElement.dataset = { theme: 'light', font: 'normal' };
 global.document = {
+  documentElement: docElement,
   getElementById(id) { if (!els[id]) els[id] = makeEl(); return els[id]; },
   querySelectorAll() { return []; },
   querySelector() { return makeEl(); },
@@ -37,6 +40,7 @@ global.document = {
   body: makeEl()
 };
 global.window = { matchMedia: () => ({ matches: false }), print() {} };
+global.FileReader = function () { this.readAsText = () => {}; };
 global.matchMedia = global.window.matchMedia;
 global.localStorage = {
   d: {},
@@ -55,8 +59,10 @@ global.Blob = function () {};
 // ----------------------- Cargar la app -----------------------
 const htmlPath = path.join(__dirname, '..', 'EEFF_Consolidados.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
-const match = html.match(/<script>([\s\S]*)<\/script>/);
-if (!match) { console.error('No se encontro <script> en EEFF_Consolidados.html'); process.exit(1); }
+// Se toma solo el script principal de la app (el <head> lleva otro script corto
+// que aplica el tema antes de pintar).
+const match = html.match(/<script id="appScript">([\s\S]*?)<\/script>/);
+if (!match) { console.error('No se encontro <script id="appScript"> en EEFF_Consolidados.html'); process.exit(1); }
 const appJs = match[1];
 
 // ----------------------- Pruebas (mismo ambito que la app) -----------------------
