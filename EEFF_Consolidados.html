@@ -563,8 +563,8 @@
       margin-top: 16px;
     }
     .unit-nav button { font-weight: 700; }
-    .unit-nav button:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
-    .unit-nav button:disabled:hover { transform: none; }
+    button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+    button:disabled:hover { transform: none; border-color: var(--line); }
 
     .screen { display: none; }
     .screen.active { display: block; }
@@ -953,7 +953,7 @@
     .prefs button { min-height: 32px; padding: 4px 10px; font-size: 12px; }
 
     /* ===== Tamaño de letra ajustable (accesibilidad) =====
-       La interfaz esta construida en px; el zoom escala todo el bloque de forma
+       La interfaz está construida en px; el zoom escala todo el bloque de forma
        uniforme sin tener que reescribir cada medida. */
     html[data-font="grande"] .app,
     html[data-font="grande"] .print-sheet { zoom: 1.12; }
@@ -1033,7 +1033,7 @@
     html[data-theme="dark"] .niif18-legend .inv { background: #17264d; color: #a5b8ff; border-color: #2c3f66; }
     html[data-theme="dark"] .niif18-legend .fin { background: #2c2110; color: #fcd34d; border-color: #6b4b17; }
 
-    html[data-theme="dark"] .ws-total { background: #1a2532; }
+    html[data-theme="dark"] .ws-total td { background: #1a2532; color: var(--ink); }
     html[data-theme="dark"] .ws-check.ok { background: #0f2a1d; border-color: #16a34a; color: #86efac; }
     html[data-theme="dark"] .ws-check.bad { background: #2d1319; border-color: #fb7185; color: #fda4af; }
     html[data-theme="dark"] .bar-track { background: #1d2937; }
@@ -1149,7 +1149,7 @@
         short: "Expansión",
         title: "Unidad 1: Expansión de Empresas",
         subtitle: "Distribuidores internos y externos, estados financieros por canal y control contable.",
-        norm: "En NIIF completas la relación con distribuidores no se resuelve con una sola norma, sino con la aplicación combinada de varias. El reconocimiento del ingreso sigue el modelo de transferencia de control de NIIF 15 (Ingresos de actividades ordinarias procedentes de contratos con clientes): el ingreso se reconoce cuando el cliente obtiene el control del bien, no al mover mercadería a un canal propio. Los inventarios se miden conforme a NIC 2, al menor entre el costo y el valor neto realizable. La presentación y revelación siguen NIC 1. El análisis por canal es de gestión y solo constituye información por segmentos de propósito general si la entidad esta dentro del alcance de NIIF 8. Un canal interno no genera ingreso propio; la venta se reconoce frente al cliente final.",
+        norm: "En NIIF completas la relación con distribuidores no se resuelve con una sola norma, sino con la aplicación combinada de varias. El reconocimiento del ingreso sigue el modelo de transferencia de control de NIIF 15 (Ingresos de actividades ordinarias procedentes de contratos con clientes): el ingreso se reconoce cuando el cliente obtiene el control del bien, no al mover mercadería a un canal propio. Los inventarios se miden conforme a NIC 2, al menor entre el costo y el valor neto realizable. La presentación y revelación siguen NIC 1. El análisis por canal es de gestión y solo constituye información por segmentos de propósito general si la entidad está dentro del alcance de NIIF 8. Un canal interno no genera ingreso propio; la venta se reconoce frente al cliente final.",
         concepts: [
           "Distribuidor interno: unidad, departamento o canal dependiente de la misma entidad; no constituye otra entidad jurídica y se controla por centro de responsabilidad.",
           "Distribuidor externo: tercero independiente que compra en firme, revende, recibe en consignación o vende por comisión bajo contrato.",
@@ -3946,7 +3946,7 @@
           writeStore();
           renderExam();
         });
-        // Reloj: solo mientras el examen esta abierto en pantalla.
+        // Reloj: solo mientras el examen está abierto en pantalla.
         if (typeof setInterval === "function") {
           examTimer = setInterval(() => {
             const actual = profile().examEnCurso;
@@ -4566,7 +4566,7 @@
         <div class="table-wrap">
           <table class="journal">
             <thead><tr><th>Estado del resultado (extracto) según NIIF 18</th><th>Importe</th></tr></thead>
-            <tbody>${filas.map(f => `<tr${f.sub ? ` style="font-weight:700;background:#eef3f5"` : ""}><td>${f.c}</td><td>${fmtImporte(f.v)}</td></tr>`).join("")}</tbody>
+            <tbody>${filas.map(f => `<tr${f.sub ? ` class="ws-total"` : ""}><td>${f.c}</td><td>${fmtImporte(f.v)}</td></tr>`).join("")}</tbody>
           </table>
         </div>
       `;
@@ -4885,7 +4885,9 @@
     });
 
     $("fontToggle").addEventListener("click", () => {
-      const i = FONT_STEPS.indexOf(prefs.font);
+      // Si aun no hay preferencia guardada se parte de "normal": sin esto,
+      // indexOf devolveria -1 y el primer clic no cambiaria nada.
+      const i = Math.max(0, FONT_STEPS.indexOf(prefs.font));
       prefs.font = FONT_STEPS[(i + 1) % FONT_STEPS.length];
       savePrefs();
       toast("Tamaño de letra: " + prefs.font);
