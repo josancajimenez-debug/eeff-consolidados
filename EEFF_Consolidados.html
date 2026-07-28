@@ -75,6 +75,14 @@
       font: inherit;
     }
 
+    /* Escala de encabezados.
+       El nivel de cada encabezado es semántico (h1 = pantalla, h2 = panel,
+       h3 = sección o tarjeta) y el tamaño se fija aquí, para que no dependa de
+       los valores por omisión del navegador. Las reglas específicas de cada
+       componente vienen después y prevalecen sobre estas. */
+    .panel-body h2, .print-sheet h2 { font-size: 1.17em; }
+    .panel-body h3, .print-sheet h3, .result-box h3 { font-size: 1em; }
+
     button {
       border: 1px solid var(--line);
       background: #fff;
@@ -249,7 +257,7 @@
       margin-bottom: 16px;
     }
 
-    .topbar h2 {
+    .topbar h1 {
       margin: 0;
       font-size: 24px;
     }
@@ -290,7 +298,7 @@
       gap: 10px;
     }
 
-    .panel-head h3 {
+    .panel-head h2 {
       margin: 0;
       font-size: 16px;
     }
@@ -350,7 +358,7 @@
       background: #fff;
     }
 
-    .mini h4 {
+    .mini h3 {
       margin: 0 0 6px;
       font-size: 14px;
     }
@@ -632,7 +640,7 @@
     .nav .done { background: rgba(255, 255, 255, .14); padding: 2px 8px; border-radius: 999px; }
     .nav button.active .done { background: #bfe7df; color: #06343b; }
 
-    .topbar h2 {
+    .topbar h1 {
       background: var(--brand-grad);
       -webkit-background-clip: text;
       background-clip: text;
@@ -804,7 +812,7 @@
       letter-spacing: .3px;
       margin-bottom: 10px;
     }
-    .hero h3 { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: -.5px; }
+    .hero h2 { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: -.5px; }
     .hero p { margin: 8px 0 0; color: #e6efff; font-size: 15px; max-width: 60ch; }
     .hero-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
     .hero-chips span {
@@ -939,7 +947,7 @@
       text-align: center;
       background: linear-gradient(180deg, rgba(13, 148, 136, .06), transparent);
     }
-    .cert h2 { margin: 0 0 4px; font-size: 24px; }
+    .cert h1 { margin: 0 0 4px; font-size: 24px; }
     .cert .cert-name { font-size: 27px; font-weight: 800; margin: 14px 0 6px; }
     .cert .cert-sign { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; }
     .cert .cert-sign div { min-width: 200px; border-top: 1px solid var(--ink); padding-top: 6px; font-size: 12px; }
@@ -1043,7 +1051,7 @@
       .main { padding: 0; }
       .panel { box-shadow: none; border-color: #cbd5e1; break-inside: avoid; }
       details > div { display: block !important; }
-      .topbar h2 { color: #0f172a !important; -webkit-text-fill-color: #0f172a; }
+      .topbar h1 { color: #0f172a !important; -webkit-text-fill-color: #0f172a; }
       body.printing-unit .app, body.printing-cert .app { display: none !important; }
       body.printing-unit .print-sheet, body.printing-cert .print-sheet { display: block !important; padding: 8px; }
       .print-sheet h1 { font-size: 20px; margin: 0 0 4px; }
@@ -1108,7 +1116,7 @@
       <div class="topbar">
         <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" title="Menu">&#9776;</button>
         <div>
-          <h2 id="screenTitle">Panel de aprendizaje</h2>
+          <h1 id="screenTitle">Panel de aprendizaje</h1>
           <p id="screenSubtitle">Contabilidad avanzada aplicada a expansión empresarial.</p>
         </div>
         <div class="toolbar" role="navigation" aria-label="Secciones">
@@ -2687,7 +2695,7 @@
         <div class="hero">
           <div class="hero-main">
             <span class="hero-badge">Panel de aprendizaje</span>
-            <h3>Hola, ${escapeHtml(activeProfile)}</h3>
+            <h2>Hola, ${escapeHtml(activeProfile)}</h2>
             <p>Contabilidad avanzada aplicada a la expansión empresarial, con enfoque NIIF completas para Costa Rica.</p>
             <div class="hero-chips">
               <span>${fullUnits}/4 unidades completas</span>
@@ -2707,7 +2715,7 @@
         </div>
         <div class="panel">
           <div class="panel-head">
-            <h3>Ruta de estudio</h3>
+            <h2>Ruta de estudio</h2>
             <span class="badge">HTML portable</span>
           </div>
           <div class="panel-body">
@@ -2716,7 +2724,7 @@
             <div class="unit-grid">
               ${units.map((unit, index) => `
                 <article class="mini">
-                  <h4>${unit.title}</h4>
+                  <h3>${unit.title}</h3>
                   <p>${unit.subtitle}</p>
                   <p><span class="badge ${unit.color}">${p.complete[unit.id] ? "Lección revisada" : "Pendiente"}</span></p>
                   <button data-open-unit="${index}">Abrir unidad</button>
@@ -2740,7 +2748,7 @@
       if (activeRole === "estudiante") {
         return `
           <div class="panel" style="margin-top:16px">
-            <div class="panel-head"><h3>Enfoque de estudio</h3></div>
+            <div class="panel-head"><h2>Enfoque de estudio</h2></div>
             <div class="panel-body">
               <div class="flow">
                 <div>Revise conceptos y fundamento normativo.</div>
@@ -2756,7 +2764,7 @@
       if (activeRole === "docente") {
         return `
           <div class="panel" style="margin-top:16px">
-            <div class="panel-head"><h3>Panel docente</h3><span class="badge blue">Formativo</span></div>
+            <div class="panel-head"><h2>Panel docente</h2><span class="badge blue">Formativo</span></div>
             <div class="panel-body">
               <p class="info">Use la rúbrica del reporte para registrar observaciones por unidad. En HTML portable, el reporte pertenece al navegador usado.</p>
               <p class="warning"><strong>Alcance del acceso por rol.</strong> La clave de Docente/Administrador se guarda ofuscada en este mismo navegador y el rol se elige desde la barra lateral. Cualquier persona con acceso al equipo puede cambiarlo editando los datos locales del navegador: sirve para ordenar el uso en clase, no para calificar con valor oficial. Las notas con efecto académico deben respaldarse fuera de la app.</p>
@@ -2771,7 +2779,7 @@
       }
       return `
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head"><h3>Panel administrador</h3><span class="badge rose">Local</span></div>
+          <div class="panel-head"><h2>Panel administrador</h2><span class="badge rose">Local</span></div>
           <div class="panel-body">
             <p class="warning">Para convertir esta versión en multiusuario real se debe agregar backend, base de datos centralizada, autenticación y reportes por grupo.</p>
             <div class="toolbar" style="justify-content:flex-start">
@@ -2802,7 +2810,7 @@
           </section>
           <aside class="panel">
             <div class="panel-head">
-              <h3>Fundamento y avance</h3>
+              <h2>Fundamento y avance</h2>
               <span class="badge ${unit.color}">Unidad ${activeUnit + 1}</span>
             </div>
             <div class="panel-body" id="unitAside"></div>
@@ -2904,7 +2912,7 @@
         body.innerHTML = `
           <div class="unit-grid">
             <div class="mini">
-              <h4>Conceptos clave <span class="badge blue">${conceptsReadCount(unit)}/${unit.concepts.length} leidos</span></h4>
+              <h3>Conceptos clave <span class="badge blue">${conceptsReadCount(unit)}/${unit.concepts.length} leidos</span></h3>
               <p class="small-label" style="color:var(--muted)">Lee cada concepto y marcalo. Al completar todos obtienes el 15% de avance.</p>
               <ul class="concept-list">
                 ${unit.concepts.map((item, i) => `
@@ -2922,7 +2930,7 @@
               ` : ""}
             </div>
             <div class="mini">
-              <h4>Proceso contable</h4>
+              <h3>Proceso contable</h3>
               <div class="flow">${unit.process.map(item => `<div>${item}</div>`).join("")}</div>
             </div>
           </div>
@@ -3067,7 +3075,7 @@
           ? `<div class="empty">No hay ejercicios para este nivel.</div>`
           : filtered.map(ex => `
             <div class="mini" style="margin-bottom:12px">
-              <h4>${ex.title} <span class="badge ${levelBadgeClass(ex.level)}">${levelLabel(ex.level)}</span></h4>
+              <h3>${ex.title} <span class="badge ${levelBadgeClass(ex.level)}">${levelLabel(ex.level)}</span></h3>
               <p>${ex.statement}</p>
               <details data-ex-level="${ex.level}">
                 <summary style="cursor:pointer;font-weight:700;color:var(--blue)">Ver solución</summary>
@@ -3301,7 +3309,7 @@
       }
       const asiento = simulatorJournal(unit);
       const bloqueAsiento = asiento.length
-        ? `<h4 style="margin:14px 0 6px">Asiento de diario generado</h4>
+        ? `<h3 style="margin:14px 0 6px">Asiento de diario generado</h3>
            <p class="footer-note" style="margin:0 0 4px">Registro que corresponde a los datos digitados. Comparelo con el que usted preparo.</p>
            ${journalTable(asiento)}
            ${journalCheck(asiento)}`
@@ -3375,7 +3383,7 @@
             ["sUtilidades", "Utilidades acumuladas", 60000]
           ]],
           ["Ajustes intragrupo", [
-            ["recíproco", "Saldos por cobrar y pagar entre matriz y subsidiaria", 25000],
+            ["reciproco", "Saldos por cobrar y pagar entre matriz y subsidiaria", 25000],
             ["utilNoRealizada", "Utilidad no realizada en el inventario final", 8000]
           ]]
         ]
@@ -3407,7 +3415,7 @@
       return `
         <p class="info"><strong>${def.titulo}.</strong> ${def.intro}</p>
         ${def.grupos.map(([titulo, campos]) => `
-          <h4 style="margin:14px 0 6px">${titulo}</h4>
+          <h3 style="margin:14px 0 6px">${titulo}</h3>
           ${unit.id === "u3" && titulo === "Datos de la adquisición" ? `
             <label style="display:block;margin-bottom:10px">
               <span class="small-label" style="color:var(--muted)">Medición del interés no controlador (NIIF 3)</span>
@@ -3523,9 +3531,9 @@
       const activosSub = d.sActivos + d.sInventario;
       const ppSub = d.sPasivos + patActual;
 
-      const cOtros = d.mActivos + d.sActivos - d.recíproco;
+      const cOtros = d.mActivos + d.sActivos - d.reciproco;
       const cInventario = d.mInventario + d.sInventario - d.utilNoRealizada;
-      const cPasivos = d.mPasivos + d.sPasivos - d.recíproco;
+      const cPasivos = d.mPasivos + d.sPasivos - d.reciproco;
       const cUtilidades = d.mUtilidades + parteMatrizPost - d.utilNoRealizada;
       const cActivos = cOtros + cInventario + d.ajusteVR + plusvalia;
       const cPP = cPasivos + d.mCapital + cUtilidades + pncFinal;
@@ -3548,13 +3556,13 @@
       } = worksheetU3Calc(d);
 
       const filas = [
-        wsRow("Otros activos", d.mActivos, d.sActivos, "", d.recíproco, cOtros),
+        wsRow("Otros activos", d.mActivos, d.sActivos, "", d.reciproco, cOtros),
         wsRow("Inventario", d.mInventario, d.sInventario, "", d.utilNoRealizada, cInventario),
         wsRow("Inversión en subsidiaria (al costo)", invMatriz, "", "", invMatriz, 0),
         wsRow("Ajuste a valor razonable de activos identificables", "", "", d.ajusteVR, "", d.ajusteVR),
         wsRow("Plusvalía", "", "", plusvalia, "", plusvalia),
         wsRow("Total de activos", activosMatriz, activosSub, "", "", cActivos, { total: true }),
-        wsRow("Pasivos", d.mPasivos, d.sPasivos, d.recíproco, "", cPasivos),
+        wsRow("Pasivos", d.mPasivos, d.sPasivos, d.reciproco, "", cPasivos),
         wsRow("Capital social", d.mCapital, d.sCapital, d.sCapital, "", d.mCapital),
         wsRow("Utilidades acumuladas", d.mUtilidades, d.sUtilidades, d.sUtilidades + d.utilNoRealizada, parteMatrizPost, cUtilidades),
         wsRow("Interés no controlador", "", "", "", pncFinal, pncFinal),
@@ -3571,14 +3579,14 @@
         ["Utilidades acumuladas consolidadas", "", parteMatrizPost, "Parte de la matriz en resultados posteriores"]
       ];
       const asiento2 = [
-        ["Cuentas por pagar intragrupo", d.recíproco, "", "Eliminación de saldos recíprocos"],
-        ["Cuentas por cobrar intragrupo", "", d.recíproco, "Eliminación de saldos recíprocos"],
+        ["Cuentas por pagar intragrupo", d.reciproco, "", "Eliminación de saldos recíprocos"],
+        ["Cuentas por cobrar intragrupo", "", d.reciproco, "Eliminación de saldos recíprocos"],
         ["Utilidades acumuladas", d.utilNoRealizada, "", "Utilidad no realizada en inventario"],
         ["Inventario", "", d.utilNoRealizada, "El grupo no puede ganar consigo mismo"]
       ];
 
       return `
-        <h4 style="margin:0 0 6px">1. Determinación de la plusvalía y del interés no controlador</h4>
+        <h3 style="margin:0 0 6px">1. Determinación de la plusvalía y del interés no controlador</h3>
         <div class="table-wrap">
           <table class="journal">
             <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
@@ -3596,7 +3604,7 @@
         ${plusvalia < 0 ? `<p class="warning"><strong>Plusvalía negativa.</strong> NIIF 3 exige revisar la identificación y medición de los activos y pasivos antes de reconocer una ganancia por compra en condiciones muy ventajosas en el resultado del periodo.</p>` : ""}
         ${d.metodoPNC === "razonable" ? `<p class="footer-note">Al medir el interés no controlador a valor razonable se reconoce también la plusvalía que le corresponde (plusvalía completa).</p>` : `<p class="footer-note">Al medir el interés no controlador como proporción de los activos netos identificables, la plusvalía reconocida es solo la de la controladora.</p>`}
 
-        <h4 style="margin:18px 0 6px">2. Asientos de eliminación</h4>
+        <h3 style="margin:18px 0 6px">2. Asientos de eliminación</h3>
         <p class="footer-note" style="margin:0 0 4px">a) Eliminación de la inversión contra el patrimonio adquirido</p>
         ${journalTable(asiento)}
         ${journalCheck(asiento)}
@@ -3604,7 +3612,7 @@
         ${journalTable(asiento2)}
         ${journalCheck(asiento2)}
 
-        <h4 style="margin:18px 0 6px">3. Hoja de trabajo</h4>
+        <h3 style="margin:18px 0 6px">3. Hoja de trabajo</h3>
         ${wsTable(def, filas)}
         ${balanceCheck("Matriz", activosMatriz, ppMatriz)}
         ${balanceCheck("Subsidiaria", activosSub, ppSub)}
@@ -3668,7 +3676,7 @@
       ];
 
       return `
-        <h4 style="margin:0 0 6px">1. Conciliación de las cuentas recíprocas</h4>
+        <h3 style="margin:0 0 6px">1. Conciliación de las cuentas recíprocas</h3>
         <div class="table-wrap">
           <table class="journal">
             <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
@@ -3684,11 +3692,11 @@
           ${Math.abs(difConciliacion) < 0.005 ? "&#10003; Cuentas recíprocas conciliadas." : `&#9888; Diferencia sin explicar de ${money(difConciliacion)}. Revise las partidas en tránsito antes de combinar: el estado combinado no cuadrará mientras exista.`}
         </div>
 
-        <h4 style="margin:18px 0 6px">2. Asientos de conciliación y eliminación</h4>
+        <h3 style="margin:18px 0 6px">2. Asientos de conciliación y eliminación</h3>
         ${journalTable(asiento)}
         ${journalCheck(asiento)}
 
-        <h4 style="margin:18px 0 6px">3. Hoja de trabajo</h4>
+        <h3 style="margin:18px 0 6px">3. Hoja de trabajo</h3>
         ${wsTable(def, filas)}
         ${balanceCheck("Casa central", activosCC, ppCC)}
         ${balanceCheck("Sucursal", activosSU, ppSU)}
@@ -3757,7 +3765,7 @@
       const unit = units[activeUnit];
       const ex = unit.example;
       const simSection = `
-        <h3>Simulador - datos del caso</h3>
+        <h2>Simulador - datos del caso</h2>
         <ul>${unit.simulator.fields.map(([, label, value]) => `<li>${label}: ${money(value)}</li>`).join("")}</ul>
         ${lastSimResult[unit.id]
           ? `<div class="result-box">${lastSimResult[unit.id]}</div>`
@@ -3766,7 +3774,7 @@
       printSheet(`
         <h1>${unit.title}</h1>
         <p>${unit.subtitle}</p>
-        <h3>Ejemplo resuelto</h3>
+        <h2>Ejemplo resuelto</h2>
         <p>${ex.story}</p>
         ${journalTable(ex.rows)}
         <div class="result-box"><strong>Resultado esperado:</strong> ${ex.result}</div>
@@ -3822,7 +3830,7 @@
         </div>
         ${terminada ? `<div class="result-box" role="status"><strong>Resultado de la ronda:</strong> ${correctas} de ${total} correctas (${pct(total ? correctas / total * 100 : 0)}). ${correctas === total ? "Dominio demostrado en esta ronda." : "Repase la retroalimentación y pulse Nuevo intento para practicar con otras preguntas."}</div>` : ""}
         ${intentos.length ? `
-          <h4 style="margin:16px 0 4px">Historial de intentos</h4>
+          <h3 style="margin:16px 0 4px">Historial de intentos</h3>
           <ol class="attempt-list">
             ${intentos.slice().reverse().map(a => `<li>${escapeHtml(a.fecha)}: ${a.correctas}/${a.total} correctas (${pct(a.total ? a.correctas / a.total * 100 : 0)})</li>`).join("")}
           </ol>
@@ -4000,7 +4008,7 @@
         $("examScreen").innerHTML = `
           <div class="panel">
             <div class="panel-head">
-              <h3>Examen en curso</h3>
+              <h2>Examen en curso</h2>
               <span class="badge rose" id="examClock" role="timer" aria-live="off">${mmss(examRemaining(e))}</span>
             </div>
             <div class="panel-body">
@@ -4062,13 +4070,13 @@
       $("examScreen").innerHTML = `
         <div class="panel">
           <div class="panel-head">
-            <h3>${r ? "Resultado del último examen" : "Antes de empezar"}</h3>
+            <h2>${r ? "Resultado del último examen" : "Antes de empezar"}</h2>
             ${r ? `<span class="badge ${r.aprobado ? "" : "rose"}">${r.nota}% &middot; ${r.aprobado ? "Aprobado" : "No aprobado"}</span>` : `<span class="badge blue">${EXAM_MINUTOS} minutos</span>`}
           </div>
           <div class="panel-body">
             ${r ? `
               <p class="info"><strong>${escapeHtml(r.fecha)}.</strong> ${r.correctas} de ${r.total} respuestas correctas (${r.nota}%). Nota mínima de aprobación: ${EXAM_APROBACION}%. Entrega: ${escapeHtml(r.motivo)}.</p>
-              <h4 style="margin:16px 0 6px">Revisión de respuestas</h4>
+              <h3 style="margin:16px 0 6px">Revisión de respuestas</h3>
               <div class="flow">
                 ${(r.detalle || []).map(d => {
                   const q = examPregunta(d);
@@ -4125,7 +4133,7 @@
       return `
         <div class="panel" style="margin-bottom:16px">
           <div class="panel-head">
-            <h3>${linea ? escapeHtml(linea) : "Datos del curso"}</h3>
+            <h2>${linea ? escapeHtml(linea) : "Datos del curso"}</h2>
             <span class="badge">${new Date().toLocaleDateString("es-CR")}</span>
           </div>
           <div class="panel-body">
@@ -4172,7 +4180,7 @@
       const preguntas = units.reduce((s, u) => s + quizTotal(u, p), 0);
       printSheet(`
         <div class="cert">
-          <h2>Constancia de finalización</h2>
+          <h1>Constancia de finalización</h1>
           <p>${escapeHtml(c.institucion || "")}</p>
           <p class="footer-note" style="margin:0">Se hace constar que</p>
           <div class="cert-name">${escapeHtml(activeProfile)}</div>
@@ -4201,11 +4209,11 @@
         ${cursoHeaderHtml(c)}
         <div class="panel">
           <div class="panel-head">
-            <h3>Resumen de ${escapeHtml(activeProfile)}</h3>
+            <h2>Resumen de ${escapeHtml(activeProfile)}</h2>
             <span class="badge blue">${rate}% avance</span>
           </div>
           <div class="panel-body">
-            <h4 style="margin:0 0 8px">Avance por unidad</h4>
+            <h3 style="margin:0 0 8px">Avance por unidad</h3>
             ${avanceChartHtml(p)}
             <div class="table-wrap" style="margin-top:16px">
               <table class="journal">
@@ -4230,7 +4238,7 @@
             <p class="footer-note">El respaldo contiene todo su progreso: conceptos, ejercicios, papeles de trabajo, notas, autoevaluaciones y examen. Guárdelo si va a cambiar de equipo o de navegador.</p>
             <div class="unit-grid" style="margin-top:12px">
               <div class="mini">
-                <h4>Rúbrica formativa</h4>
+                <h3>Rúbrica formativa</h3>
                 <div class="rubric" id="rubricBox">
                   ${["Clasifica la relación contable", "Prepara registros correctos", "Distingue combinación y consolidación", "Sustenta con NIIF completas", "Explica errores y correcciones"].map((item, idx) => `
                     <label><input type="checkbox" data-rubric="${idx}" ${p.rubric[idx] ? "checked" : ""}> ${item}</label>
@@ -4241,7 +4249,7 @@
                 <div style="margin-top:8px"><button class="primary" id="saveRubricNotes">Guardar observación</button></div>
               </div>
               <div class="mini">
-                <h4>Retroalimentación sugerida</h4>
+                <h3>Retroalimentación sugerida</h3>
                 <p>${feedbackText()}</p>
                 <div class="panel-actions">
                   <button id="printReport">Imprimir o guardar PDF</button>
@@ -4357,7 +4365,7 @@
       return `
         <div class="panel" style="margin-top:16px">
           <div class="panel-head">
-            <h3>Panel de grupo (local)</h3>
+            <h2>Panel de grupo (local)</h2>
             <span class="badge blue">${names.length} perfil(es) en este navegador</span>
           </div>
           <div class="panel-body">
@@ -4587,7 +4595,7 @@
       $("glossaryScreen").innerHTML = `
         <div class="panel">
           <div class="panel-head">
-            <h3>Glosario (${filtered.length} de ${glossary.length})</h3>
+            <h2>Glosario (${filtered.length} de ${glossary.length})</h2>
             <span class="badge">NIIF completas</span>
           </div>
           <div class="panel-body">
@@ -4600,7 +4608,7 @@
                   const unitIndex = units.findIndex((u, i) => `Unidad ${i + 1}` === g.unit);
                   return `
                   <div class="mini">
-                    <h4>${g.term} <span class="badge blue">${g.unit}</span></h4>
+                    <h3>${g.term} <span class="badge blue">${g.unit}</span></h3>
                     <p>${g.def}</p>
                     ${unitIndex >= 0 ? `<div style="margin-top:8px"><button data-goto-unit="${unitIndex}">Ir a la unidad ${unitIndex + 1}</button></div>` : ""}
                   </div>
@@ -4676,7 +4684,7 @@
     function niif18Block(filas, nota) {
       if (!filas || !filas.length) return "";
       return `
-        <h4 style="margin:14px 0 6px">Presentación según NIIF 18</h4>
+        <h3 style="margin:14px 0 6px">Presentación según NIIF 18</h3>
         ${niif18Legend()}
         ${estadoNiif18(filas)}
         ${nota ? `<p class="footer-note">${nota}</p>` : ""}
@@ -4700,7 +4708,7 @@
         ${list.length === 0 ? `<div class="empty">No hay casos para este filtro.</div>` : list.map(c => `
           <div class="panel" style="margin-bottom:16px">
             <div class="panel-head">
-              <h3>${c.titulo}</h3>
+              <h2>${c.titulo}</h2>
               <span class="badge ${casoNivelClass(c.nivel)}">${casoNivelLabel(c.nivel)}</span>
             </div>
             <div class="panel-body">
@@ -4709,27 +4717,27 @@
                 ${c.normas.map(n => `<span class="badge">${n}</span>`).join("")}
               </div>
               <p class="info"><strong>Enunciado.</strong> ${c.enunciado}</p>
-              <h4 style="margin:16px 0 6px">Datos del caso</h4>
+              <h3 style="margin:16px 0 6px">Datos del caso</h3>
               ${dataTable(c.datos)}
-              <h4 style="margin:16px 0 6px">Requerimientos</h4>
+              <h3 style="margin:16px 0 6px">Requerimientos</h3>
               <ol style="margin:0;padding-left:20px;color:var(--muted)">${c.requerimientos.map(r => `<li>${r}</li>`).join("")}</ol>
               <details style="margin-top:12px">
                 <summary style="cursor:pointer;font-weight:700;color:var(--blue)">Ver desarrollo y solución completa</summary>
                 <div style="margin-top:10px">
-                  <h4 style="margin:12px 0 6px">Desarrollo paso a paso</h4>
+                  <h3 style="margin:12px 0 6px">Desarrollo paso a paso</h3>
                   <div class="flow">${c.desarrollo.map(s => `<div><strong>${s.t}.</strong> ${s.d}</div>`).join("")}</div>
                   ${c.asientos.length ? `
-                    <h4 style="margin:16px 0 6px">Registros contables</h4>
+                    <h3 style="margin:16px 0 6px">Registros contables</h3>
                     ${c.asientos.map(a => `<p class="footer-note" style="margin:12px 0 4px"><strong>${a.descripcion}</strong></p>${journalTable(a.rows)}`).join("")}
                   ` : ""}
-                  <h4 style="margin:16px 0 6px">Solución</h4>
+                  <h3 style="margin:16px 0 6px">Solución</h3>
                   <div class="result-box">${c.solucion}</div>
                   ${c.niif18 ? `
-                    <h4 style="margin:16px 0 6px">Presentación y cumplimiento según NIIF 18</h4>
+                    <h3 style="margin:16px 0 6px">Presentación y cumplimiento según NIIF 18</h3>
                     ${c.niif18.filas && c.niif18.filas.length ? estadoNiif18(c.niif18.filas) : ""}
                     <p class="info">${c.niif18.nota}</p>
                   ` : ""}
-                  <h4 style="margin:16px 0 6px">Fundamento normativo</h4>
+                  <h3 style="margin:16px 0 6px">Fundamento normativo</h3>
                   <p class="warning">${c.fundamento}</p>
                 </div>
               </details>
@@ -4768,11 +4776,11 @@
       $("screenSubtitle").textContent = "Fuentes locales aportadas y normas NIIF completas.";
       $("bibliographyScreen").innerHTML = `
         <div class="panel">
-          <div class="panel-head"><h3>Fuentes base</h3><span class="badge">APA pendiente de depuración documental</span></div>
+          <div class="panel-head"><h2>Fuentes base</h2><span class="badge">APA pendiente de depuración documental</span></div>
           <div class="panel-body">
             <p class="info">La bibliografía se toma de los archivos locales aportados. Para una versión académica final, se debe completar autor, fecha, editorial o entidad emisora cuando el documento lo indique.</p>
             <div class="unit-grid">
-              ${bibliography.map(item => `<div class="mini"><h4>${item.split("/").pop()}</h4><p>${item}</p></div>`).join("")}
+              ${bibliography.map(item => `<div class="mini"><h3>${item.split("/").pop()}</h3><p>${item}</p></div>`).join("")}
             </div>
             <p class="warning">No se debe afirmar aplicación normativa específica cuando el documento o la NIIF no la sustente expresamente.</p>
           </div>
@@ -4785,20 +4793,20 @@
       $("screenSubtitle").textContent = "Guía paso a paso para estudiantes y docentes.";
       $("manualScreen").innerHTML = `
         <div class="panel">
-          <div class="panel-head"><h3>1. Qué es EEFF Consolidados</h3><span class="badge">Visión general</span></div>
+          <div class="panel-head"><h2>1. Qué es EEFF Consolidados</h2><span class="badge">Visión general</span></div>
           <div class="panel-body">
             <p class="info">Herramienta educativa interactiva para el curso de Contabilidad Avanzada. Cubre cuatro unidades bajo NIIF completas: expansión empresarial, agencias y sucursales, inversión en subsidiarias y empresas asociadas. Incluye ejemplos resueltos, simuladores con asiento de diario, papeles de trabajo de combinación y consolidación, casos resueltos, autoevaluación por rondas y examen integrador. Funciona sin internet y guarda tu avance en el propio navegador (localStorage).</p>
             <div class="unit-grid">
-              <div class="mini"><h4>Unidad 1</h4><p>Expansión de Empresas: distribuidores internos/externos, estados por canal y control contable.</p></div>
-              <div class="mini"><h4>Unidad 2</h4><p>Agencias y Sucursales: casa central, cuentas recíprocas y estados combinados.</p></div>
-              <div class="mini"><h4>Unidad 3</h4><p>Inversión en Subsidiarias: control, método del costo, participación y consolidación.</p></div>
-              <div class="mini"><h4>Unidad 4</h4><p>Empresas Asociadas: influencia significativa y método de participación.</p></div>
+              <div class="mini"><h3>Unidad 1</h3><p>Expansión de Empresas: distribuidores internos/externos, estados por canal y control contable.</p></div>
+              <div class="mini"><h3>Unidad 2</h3><p>Agencias y Sucursales: casa central, cuentas recíprocas y estados combinados.</p></div>
+              <div class="mini"><h3>Unidad 3</h3><p>Inversión en Subsidiarias: control, método del costo, participación y consolidación.</p></div>
+              <div class="mini"><h3>Unidad 4</h3><p>Empresas Asociadas: influencia significativa y método de participación.</p></div>
             </div>
           </div>
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>2. Primeros pasos</h3><span class="badge">Inicio</span></div>
+          <div class="panel-head"><h2>2. Primeros pasos</h2><span class="badge">Inicio</span></div>
           <div class="panel-body">
             <ol class="manual-list">
               <li><strong>Escribe tu nombre</strong> en el campo de perfil (barra lateral) y pulsa <em>Guardar perfil</em>. Tu avance queda ligado a ese nombre.</li>
@@ -4812,22 +4820,22 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>3. Las secciones del menú superior</h3><span class="badge">Navegación</span></div>
+          <div class="panel-head"><h2>3. Las secciones del menú superior</h2><span class="badge">Navegación</span></div>
           <div class="panel-body">
             <div class="unit-grid">
-              <div class="mini"><h4>Panel</h4><p>Resumen de tu avance, unidad sugerida y accesos rápidos.</p></div>
-              <div class="mini"><h4>Glosario</h4><p>Términos clave con buscador; cada término enlaza a su unidad.</p></div>
-              <div class="mini"><h4>Casos resueltos</h4><p>Ejercicios completos (enunciado, datos, asientos, solución y fundamento NIIF). Filtrables por unidad.</p></div>
-              <div class="mini"><h4>Examen</h4><p>Evaluación integradora cronometrada de las cuatro unidades, con revisión al finalizar.</p></div>
-              <div class="mini"><h4>Reporte</h4><p>Avance por unidad, gráfico, respaldos, gestión de perfiles y constancia de finalización.</p></div>
-              <div class="mini"><h4>Bibliografía</h4><p>Fuentes locales aportadas y marco normativo NIIF.</p></div>
-              <div class="mini"><h4>Manual</h4><p>Esta guía de uso.</p></div>
+              <div class="mini"><h3>Panel</h3><p>Resumen de tu avance, unidad sugerida y accesos rápidos.</p></div>
+              <div class="mini"><h3>Glosario</h3><p>Términos clave con buscador; cada término enlaza a su unidad.</p></div>
+              <div class="mini"><h3>Casos resueltos</h3><p>Ejercicios completos (enunciado, datos, asientos, solución y fundamento NIIF). Filtrables por unidad.</p></div>
+              <div class="mini"><h3>Examen</h3><p>Evaluación integradora cronometrada de las cuatro unidades, con revisión al finalizar.</p></div>
+              <div class="mini"><h3>Reporte</h3><p>Avance por unidad, gráfico, respaldos, gestión de perfiles y constancia de finalización.</p></div>
+              <div class="mini"><h3>Bibliografía</h3><p>Fuentes locales aportadas y marco normativo NIIF.</p></div>
+              <div class="mini"><h3>Manual</h3><p>Esta guía de uso.</p></div>
             </div>
           </div>
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>4. Dentro de una unidad</h3><span class="badge">Pestañas</span></div>
+          <div class="panel-head"><h2>4. Dentro de una unidad</h2><span class="badge">Pestañas</span></div>
           <div class="panel-body">
             <ol class="manual-list">
               <li><strong>Contenido:</strong> desarrollo académico. Marca cada <em>concepto clave</em> conforme lo lees (así se acredita el avance).</li>
@@ -4843,7 +4851,7 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>5. El papel de trabajo</h3><span class="badge blue">Unidades 2 y 3</span></div>
+          <div class="panel-head"><h2>5. El papel de trabajo</h2><span class="badge blue">Unidades 2 y 3</span></div>
           <div class="panel-body">
             <p class="info">Es la herramienta central del curso: una hoja de trabajo de cinco columnas (entidad A, entidad B, eliminaciones al debe, eliminaciones al haber y resultado) que se arma con los datos que tú digitas.</p>
             <ol class="manual-list">
@@ -4857,7 +4865,7 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>6. El examen integrador</h3><span class="badge rose">Cronometrado</span></div>
+          <div class="panel-head"><h2>6. El examen integrador</h2><span class="badge rose">Cronometrado</span></div>
           <div class="panel-body">
             <ol class="manual-list">
               <li>Toma 3 preguntas al azar de cada unidad (12 en total) y las presenta en orden aleatorio.</li>
@@ -4871,7 +4879,7 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>7. Cómo se calcula tu avance</h3><span class="badge">100 % por unidad</span></div>
+          <div class="panel-head"><h2>7. Cómo se calcula tu avance</h2><span class="badge">100 % por unidad</span></div>
           <div class="panel-body">
             <p class="info">Cada unidad llega a 100 % combinando actividades reales. Los pesos son:</p>
             <div class="table-wrap">
@@ -4887,7 +4895,7 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>8. Reporte, respaldo y constancia</h3><span class="badge">Perfiles</span></div>
+          <div class="panel-head"><h2>8. Reporte, respaldo y constancia</h2><span class="badge">Perfiles</span></div>
           <div class="panel-body">
             <ol class="manual-list">
               <li>En <strong>Reporte</strong> ves el gráfico de avance por unidad, el detalle de tus autoevaluaciones (con el número de intentos) y el resultado del examen.</li>
@@ -4902,7 +4910,7 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>9. Roles Docente y Administrador</h3><span class="badge">Acceso con clave</span></div>
+          <div class="panel-head"><h2>9. Roles Docente y Administrador</h2><span class="badge">Acceso con clave</span></div>
           <div class="panel-body">
             <ol class="manual-list">
               <li>En la barra lateral cambia el <strong>rol</strong> a Docente o Administrador; se solicitará una <strong>clave</strong> (la misma para ambos).</li>
@@ -4915,15 +4923,15 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>10. Preguntas frecuentes</h3><span class="badge">Ayuda</span></div>
+          <div class="panel-head"><h2>10. Preguntas frecuentes</h2><span class="badge">Ayuda</span></div>
           <div class="panel-body">
             <div class="unit-grid">
-              <div class="mini"><h4>Perdí mi avance</h4><p>Se guarda por navegador y equipo. Si limpiaste los datos o cambiaste de equipo, usa <em>Importar respaldo</em> con el archivo que descargaste.</p></div>
-              <div class="mini"><h4>No suma el avance</h4><p>Verifica que marcaste todos los conceptos, abriste el ejemplo, desplegaste los tres ejercicios, completaste el simulador y respondiste toda la ronda de autoevaluación.</p></div>
-              <div class="mini"><h4>El papel de trabajo no cuadra</h4><p>Revisa el indicador de cada columna: normalmente falta conciliar las partidas en tránsito o los saldos de una entidad no están equilibrados.</p></div>
-              <div class="mini"><h4>¿Puedo usarlo sin internet?</h4><p>Sí. Es un único archivo HTML; funciona abriéndolo directamente en el navegador.</p></div>
-              <div class="mini"><h4>¿Cómo comparto con estudiantes?</h4><p>Comparte el enlace publicado o el archivo EEFF_Consolidados.html.</p></div>
-              <div class="mini"><h4>Las preguntas me salen distintas</h4><p>Es intencional: cada ronda toma preguntas al azar del banco y baraja las opciones, para practicar el criterio y no la posición de la respuesta.</p></div>
+              <div class="mini"><h3>Perdí mi avance</h3><p>Se guarda por navegador y equipo. Si limpiaste los datos o cambiaste de equipo, usa <em>Importar respaldo</em> con el archivo que descargaste.</p></div>
+              <div class="mini"><h3>No suma el avance</h3><p>Verifica que marcaste todos los conceptos, abriste el ejemplo, desplegaste los tres ejercicios, completaste el simulador y respondiste toda la ronda de autoevaluación.</p></div>
+              <div class="mini"><h3>El papel de trabajo no cuadra</h3><p>Revisa el indicador de cada columna: normalmente falta conciliar las partidas en tránsito o los saldos de una entidad no están equilibrados.</p></div>
+              <div class="mini"><h3>¿Puedo usarlo sin internet?</h3><p>Sí. Es un único archivo HTML; funciona abriéndolo directamente en el navegador.</p></div>
+              <div class="mini"><h3>¿Cómo comparto con estudiantes?</h3><p>Comparte el enlace publicado o el archivo EEFF_Consolidados.html.</p></div>
+              <div class="mini"><h3>Las preguntas me salen distintas</h3><p>Es intencional: cada ronda toma preguntas al azar del banco y baraja las opciones, para practicar el criterio y no la posición de la respuesta.</p></div>
             </div>
             <div class="panel-actions">
               <button id="printManual" class="ghost">Imprimir manual (PDF)</button>

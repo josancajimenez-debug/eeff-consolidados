@@ -1,0 +1,31 @@
+name: Auditoria de navegador
+
+# Esta revision abre la app en Chromium y la recorre completa. Es mas lenta que
+# la suite de regresion, asi que no corre en cada push: se lanza a mano desde la
+# pestana Actions y una vez por semana, para detectar roturas que solo se ven al
+# pintar la pagina (desbordes, texto ilegible, flujos que dejan de responder).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  navegador:
+    name: Recorrido en Chromium
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Playwright y Chromium
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: Ejecutar la auditoria
+        run: node pruebas/auditoria-navegador.js

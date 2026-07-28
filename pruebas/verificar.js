@@ -109,6 +109,114 @@ const tests = `
   calculateSimulator(units[3]);
   chk('Simulador U4: saldo final 104400', document.getElementById('simResult').innerHTML.includes(money(104400)));
 
+  // ---------- Integridad del contenido ----------
+  // Estas comprobaciones vigilan los datos del curso, no el codigo: evitan que
+  // al agregar preguntas, ejercicios o casos se cuele una incoherencia.
+  let malQ = '';
+  const preguntasOk = units.every(u => Array.isArray(u.questions) && u.questions.length >= QUIZ_SIZE &&
+    u.questions.every((q, i) => {
+      const ok = q && typeof q.q === 'string' && q.q.trim() &&
+        Array.isArray(q.options) && q.options.length >= 2 &&
+        q.options.every(o => typeof o === 'string' && o.trim()) &&
+        Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length &&
+        typeof q.feedback === 'string' && q.feedback.trim();
+      if (!ok && !malQ) malQ = u.id + ' #' + i;
+      return ok;
+    }));
+  chk('Preguntas completas y con respuesta valida', preguntasOk, malQ);
+
+  let dupQ = '';
+  units.forEach(u => {
+    const vistos = new Set();
+    u.questions.forEach(q => {
+      const k = q.q.trim().toLowerCase();
+      if (vistos.has(k) && !dupQ) dupQ = u.id + ': ' + q.q.slice(0, 40);
+      vistos.add(k);
+    });
+    const opciones = new Set();
+    u.questions.forEach(q => q.options.forEach(o => opciones.add(o)));
+  });
+  chk('Sin preguntas repetidas dentro de una unidad', !dupQ, dupQ);
+
+  let dupOpt = '';
+  units.forEach(u => u.questions.forEach((q, i) => {
+    if (new Set(q.options.map(o => o.trim().toLowerCase())).size !== q.options.length && !dupOpt) {
+      dupOpt = u.id + ' #' + i;
+    }
+  }));
+  chk('Sin opciones repetidas dentro de una pregunta', !dupOpt, dupOpt);
+
+  chk('El examen puede armarse con el banco disponible',
+    units.every(u => u.questions.length >= EXAM_POR_UNIDAD));
+  chk('examBuild entrega el numero esperado de preguntas',
+    examBuild().length === EXAM_POR_UNIDAD * units.length, examBuild().length);
+  chk('examBuild no repite preguntas', (() => {
+    const e = examBuild();
+    return new Set(e.map(x => x.u + '-' + x.q)).size === e.length;
+  })());
+
+  let malEx = '';
+  const ejerciciosOk = units.every(u => {
+    const lista = exercises[u.id] || [];
+    const niveles = new Set(lista.map(e => e.level));
+    if (!['basico', 'intermedio', 'avanzado'].every(n => niveles.has(n))) { malEx = u.id + ' (falta un nivel)'; return false; }
+    return lista.every((e, i) => {
+      const ok = e.title && e.statement && e.result && ['basico', 'intermedio', 'avanzado'].includes(e.level);
+      if (!ok && !malEx) malEx = u.id + ' #' + i;
+      return ok;
+    });
+  });
+  chk('Ejercicios completos y con los tres niveles por unidad', ejerciciosOk, malEx);
+
+  let malAsiento = '';
+  units.forEach(u => {
+    const suma = (col) => u.example.rows.reduce((t, r) => t + (Number(String(r[col]).replace(/[^0-9.]/g, '')) || 0), 0);
+    if (Math.round(suma(1)) !== Math.round(suma(2)) && !malAsiento) malAsiento = u.id;
+  });
+  chk('Los ejemplos de cada unidad cuadran (Debe=Haber)', !malAsiento, malAsiento);
+
+  let malEjEx = '';
+  units.forEach(u => (exercises[u.id] || []).forEach((e, i) => {
+    if (!e.rows) return;
+    const suma = (col) => e.rows.reduce((t, r) => t + (Number(String(r[col]).replace(/[^0-9.]/g, '')) || 0), 0);
+    if (Math.round(suma(1)) !== Math.round(suma(2)) && !malEjEx) malEjEx = u.id + ' #' + i;
+  }));
+  chk('Los asientos de los ejercicios cuadran (Debe=Haber)', !malEjEx, malEjEx);
+
+  // Un termino puede ser "Transversal" (no pertenece a una unidad concreta);
+  // lo que no puede es decir "Unidad N" y que esa unidad no exista.
+  const etiquetasValidas = units.map((u, i) => 'Unidad ' + (i + 1)).concat(['Transversal']);
+  chk('El glosario apunta a unidades existentes',
+    glossary.every(g => etiquetasValidas.includes(g.unit)),
+    glossary.filter(g => !etiquetasValidas.includes(g.unit)).map(g => g.unit).join(','));
+  chk('Cada unidad tiene terminos en el glosario',
+    units.every(u => unitGlossaryTerms(u).length > 0));
+  chk('Glosario sin terminos repetidos',
+    new Set(glossary.map(g => g.term.toLowerCase())).size === glossary.length);
+  chk('Glosario con definicion en todos los terminos',
+    glossary.every(g => g.term && g.def && g.def.trim().length > 20));
+
+  chk('Los casos apuntan a un filtro valido',
+    casos.every(c => ['u1', 'u2', 'u3', 'u4', 'integrador'].includes(c.unidad)),
+    casos.filter(c => !['u1', 'u2', 'u3', 'u4', 'integrador'].includes(c.unidad)).map(c => c.unidad).join(','));
+  chk('Identificadores de caso unicos', new Set(casos.map(c => c.id)).size === casos.length);
+  chk('Todos los casos declaran normas', casos.every(c => Array.isArray(c.normas) && c.normas.length));
+
+  chk('Los campos del simulador declaran un dato de ejemplo',
+    units.every(u => u.simulator.fields.every(([k, l, v]) => k && l && typeof v === 'number' && isFinite(v))));
+  chk('Los porcentajes del simulador estan entre 0 y 100',
+    units.every(u => u.simulator.fields.every(([k, , v]) => !PCT_FIELDS.includes(k) || (v >= 0 && v <= 100))));
+  chk('Los papeles de trabajo declaran datos de ejemplo numericos',
+    Object.keys(WORKSHEETS).every(uid =>
+      WORKSHEETS[uid].grupos.every(([, campos]) => campos.every(([k, l, v]) => k && l && typeof v === 'number'))));
+  chk('Las claves de los papeles de trabajo son ASCII',
+    Object.keys(WORKSHEETS).every(uid =>
+      WORKSHEETS[uid].grupos.every(([, campos]) => campos.every(([k]) => /^[A-Za-z][A-Za-z0-9]*$/.test(k)))),
+    Object.keys(WORKSHEETS).map(uid =>
+      WORKSHEETS[uid].grupos.flatMap(([, c]) => c.map(([k]) => k)).filter(k => !/^[A-Za-z][A-Za-z0-9]*$/.test(k))).flat().join(','));
+  chk('Las unidades con papel de trabajo tienen su definicion',
+    units.every(u => !u.worksheet || !!WORKSHEETS[u.id]));
+
   // Formato de importes (punto para miles, coma para decimales)
   chk('money agrupa miles con punto', money(1234567) === '1.234.567', money(1234567));
   chk('money usa coma decimal', money(1234.5) === '1.234,50', money(1234.5));

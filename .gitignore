@@ -5,6 +5,11 @@ Prompt final.docx
 *_backup_*.html
 EEFF_Consolidados_backup_*.html
 
+# Salida de la auditoria de navegador (descargas de prueba)
+pruebas/auditoria-salida/
+node_modules/
+package-lock.json
+
 # Carpetas de herramientas / sistema
 .agents/
 .claude/
