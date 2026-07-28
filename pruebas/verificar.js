@@ -109,6 +109,57 @@ const tests = `
   calculateSimulator(units[3]);
   chk('Simulador U4: saldo final 104400', document.getElementById('simResult').innerHTML.includes(money(104400)));
 
+  // Formato de importes (punto para miles, coma para decimales)
+  chk('money agrupa miles con punto', money(1234567) === '1.234.567', money(1234567));
+  chk('money usa coma decimal', money(1234.5) === '1.234,50', money(1234.5));
+  chk('money omite decimales exactos', money(80000) === '80.000', money(80000));
+  chk('money maneja negativos', money(-2500) === '-2.500', money(-2500));
+  chk('money tolera valores no numericos', money('abc') === '0', money('abc'));
+  chk('fmtAmount no reformatea un importe ya formateado',
+    fmtAmount(money(90000)) === money(90000), fmtAmount(money(90000)));
+  chk('fmtImporte no reformatea un negativo entre parentesis',
+    fmtImporte('(' + money(60000) + ')') === '(' + money(60000) + ')', fmtImporte('(' + money(60000) + ')'));
+  chk('fmtAmount formatea el dato en crudo', fmtAmount('80000') === '80.000', fmtAmount('80000'));
+  chk('fmtAmount respeta decimales del dato', fmtAmount('1500.75') === '1.500,75', fmtAmount('1500.75'));
+  chk('pct tolera valores invalidos', pct(undefined) === '0.0%', pct(undefined));
+
+  // Robustez ante rondas guardadas con un banco distinto
+  T('Ronda con indices fuera de rango no rompe', () => {
+    const p = profile();
+    p.quiz[units[0].id] = { orden: [0, 999, 1], opciones: {}, respuestas: { 0: 0 } };
+    const vigentes = quizOrden(units[0], p.quiz[units[0].id]);
+    if (vigentes.length !== 2) throw new Error('no se descartaron los indices huerfanos');
+    quizHtml(units[0]);
+    correctCount(units[0], p);
+    quizTotal(units[0], p);
+    unitProgress(units[0], p);
+  });
+  chk('quizOrden descarta indices invalidos',
+    quizOrden(units[0], { orden: [0, -1, 'x', 500, 1] }).length === 2);
+
+  T('Examen con preguntas inexistentes no rompe', () => {
+    const p = profile();
+    p.exam = {
+      fecha: 'x', correctas: 0, total: 1, nota: 0, aprobado: false, motivo: 'entregado',
+      detalle: [{ u: 9, q: 9, elegida: 0 }, { u: 0, q: 0, elegida: 0 }]
+    };
+    activeScreen = 'exam';
+    renderExam();
+    p.exam = null;
+  });
+  chk('examRemaining tolera una marca de inicio invalida',
+    examRemaining({ inicio: NaN, minutos: 20 }) === 0 && examRemaining(null) === 0);
+  chk('examGrade ignora preguntas inexistentes',
+    examGrade({ preguntas: [{ u: 9, q: 9 }], respuestas: { 0: 0 } }).correctas === 0);
+
+  // Reiniciar deja el perfil con la estructura completa
+  T('Reiniciar un perfil deja la estructura vigente', () => {
+    store.profiles['Para reiniciar'] = normalizeProfile({ role: 'estudiante' });
+    resetProfileByName('Para reiniciar');
+    const p = store.profiles['Para reiniciar'];
+    if (!p.worksheet || !p.quizAttempts || p.exam !== null) throw new Error('faltan secciones tras reiniciar');
+  });
+
   // Respaldo e importacion
   T('Respaldo del perfil activo', () => exportBackup([activeProfile], 'respaldo.json'));
   chk('parseBackup rechaza JSON invalido', !!parseBackup('{no es json').error);
@@ -149,7 +200,7 @@ const tests = `
   const d3 = wsDefaults('u3');
   d3.metodoPNC = 'proporcional';
   const r3 = worksheetU3Calc(d3);
-  chk('Consolidacion: plusvalia 16000 (PNC proporcional)', r3.plusvalía === 16000, r3.plusvalía);
+  chk('Consolidacion: plusvalia 16000 (PNC proporcional)', r3.plusvalia === 16000, r3.plusvalia);
   chk('Consolidacion: PNC inicial 40000', r3.pncInicial === 40000, r3.pncInicial);
   chk('Consolidacion: PNC a la fecha de consolidacion 46000', r3.pncFinal === 46000, r3.pncFinal);
   chk('Consolidacion: la matriz cuadra', r3.cuadraMatriz);
@@ -159,9 +210,9 @@ const tests = `
 
   const d3vr = Object.assign({}, d3, { metodoPNC: 'razonable' });
   const r3vr = worksheetU3Calc(d3vr);
-  chk('Consolidacion: plusvalia completa 20000 (PNC a valor razonable)', r3vr.plusvalía === 20000, r3vr.plusvalía);
+  chk('Consolidacion: plusvalia completa 20000 (PNC a valor razonable)', r3vr.plusvalia === 20000, r3vr.plusvalia);
   chk('Consolidacion: cuadra con PNC a valor razonable', r3vr.cuadraConsolidado);
-  chk('Consolidacion: plusvalia completa mayor que la parcial', r3vr.plusvalía > r3.plusvalía);
+  chk('Consolidacion: plusvalia completa mayor que la parcial', r3vr.plusvalia > r3.plusvalia);
 
   // Sin utilidad no realizada ni saldos reciprocos el consolidado tambien debe cuadrar.
   const r3limpio = worksheetU3Calc(Object.assign({}, d3, { reciproco: 0, utilNoRealizada: 0 }));
@@ -174,7 +225,7 @@ const tests = `
   chk('Combinacion: sucursal cuadra', r2.cuadraSucursal);
   chk('Combinacion: el estado combinado cuadra', r2.cuadraCombinado, r2.kActivos + ' vs ' + r2.kPP);
   chk('Combinacion: total combinado 361000', r2.kActivos === 361000, r2.kActivos);
-  const r2mal = worksheetU2Calc(Object.assign({}, d2, { 'tránsito': 0 }));
+  const r2mal = worksheetU2Calc(Object.assign({}, d2, { transito: 0 }));
   chk('Combinacion: sin conciliar el transito, el papel NO cuadra', !r2mal.cuadraCombinado && !r2mal.conciliado);
 
   let cuadran = true, mal = '';

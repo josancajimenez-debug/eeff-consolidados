@@ -153,18 +153,6 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, .35);
     }
 
-    .brand h1 {
-      margin: 0;
-      font-size: 18px;
-      line-height: 1.1;
-    }
-
-    .brand p {
-      margin: 2px 0 0;
-      color: #b8d6d1;
-      font-size: 12px;
-    }
-
     .profile-box {
       border: 1px solid rgba(255,255,255,.16);
       border-radius: var(--radius);
@@ -583,9 +571,10 @@
       font-size: 12px;
     }
 
+    /* Debajo de 980px la barra lateral pasa a ser un cajón deslizante; su
+       posicionamiento se define junto al resto del comportamiento móvil, más
+       abajo, para no repartir las reglas del mismo componente en dos lugares. */
     @media (max-width: 980px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar { position: relative; height: auto; }
       .layout { grid-template-columns: 1fr; }
       .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -597,7 +586,11 @@
       .unit-grid, .form-grid, .stat-grid { grid-template-columns: 1fr; }
       .panel-head { align-items: flex-start; flex-direction: column; }
     }
-    /* ===== Renovación visual: interfaz llamativa, interactiva y responsive ===== */
+    /* ===== Capa de estilo visual =====
+       Se aplica sobre la base anterior: redefine colores, sombras, radios y
+       animaciones de los mismos componentes. Es deliberado que algunos
+       selectores se repitan (base + capa visual); al ajustar la apariencia
+       modifique esta sección, no la de arriba. */
     html, body {
       font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
       background:
@@ -692,6 +685,8 @@
     .quiz-options button:hover { border-color: var(--blue); background: #f5f7ff; }
     .quiz-options button.correct { animation: pop .3s ease; }
     .quiz-options button.incorrect { animation: shake .32s ease; }
+    /* Opción marcada en el examen: aún no se sabe si es correcta. */
+    .quiz-options button.elegida { border-color: var(--blue); font-weight: 700; background: #eef2ff; }
     @keyframes pop { 0% { transform: scale(.97); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
@@ -1020,6 +1015,7 @@
     html[data-theme="dark"] .quiz-options button.correct { background: #0f2a1d; border-color: #16a34a; }
     html[data-theme="dark"] .quiz-options button.incorrect { background: #2d1319; border-color: #fb7185; }
     html[data-theme="dark"] .quiz-options button:hover { background: #1d2937; }
+    html[data-theme="dark"] .quiz-options button.elegida { background: #1c2a55; border-color: #8b9dff; }
 
     html[data-theme="dark"] .badge { background: #123c38; color: #7ee7d8; }
     html[data-theme="dark"] .badge.blue { background: #17264d; color: #a5b8ff; }
@@ -2422,28 +2418,44 @@
       }[ch]));
     }
 
+    // Formato monetario de uso contable en Costa Rica: punto para los miles y
+    // coma para los decimales. No se usa toLocaleString("es-CR") porque su
+    // separador de miles es un espacio fino, ajeno a la práctica local y capaz
+    // de partir una cifra al final de una línea dentro de las tablas.
     function money(value) {
-      return Number(value || 0).toLocaleString("es-CR", { maximumFractionDigits: 2 });
+      const n = Number(value);
+      if (!isFinite(n)) return "0";
+      const [entero, decimales] = Math.abs(n).toFixed(2).split(".");
+      const miles = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      const cuerpo = decimales === "00" ? miles : `${miles},${decimales}`;
+      return n < 0 ? `-${cuerpo}` : cuerpo;
     }
 
     function pct(value) {
-      return `${Number(value || 0).toFixed(1)}%`;
+      const n = Number(value);
+      return `${(isFinite(n) ? n : 0).toFixed(1)}%`;
     }
 
-    // Formatea una celda como importe SOLO si es un número puro; de lo contrario
-    // la devuelve intacta (respeta textos como "80%", "150 a 700 c/u" o vacios).
+    // Un dato "en crudo" trae a lo sumo dos decimales y nunca separador de
+    // miles. Ese límite es lo que permite distinguirlo de un importe ya
+    // formateado ("80.000") y evita volver a formatearlo, que lo corrompería.
+    const CRUDO = /^\d+(\.\d{1,2})?$/;
+
+    // Formatea una celda como importe SOLO si es un número en crudo; de lo
+    // contrario la devuelve intacta (respeta "80%", "150 a 700 c/u" o vacíos).
     function fmtAmount(cell) {
       const s = String(cell == null ? "" : cell).trim();
       if (s === "") return "";
-      return /^\d+(\.\d+)?$/.test(s) ? money(Number(s)) : cell;
+      return CRUDO.test(s) ? money(Number(s)) : cell;
     }
 
     // Igual que fmtAmount, pero admite importes negativos entre paréntesis: (60000).
     function fmtImporte(value) {
       const s = String(value == null ? "" : value).trim();
-      const neg = s.match(/^\((\d+(?:\.\d+)?)\)$/);
+      const neg = s.match(/^\((\d+(?:\.\d{1,2})?)\)$/);
       if (neg) return `(${money(Number(neg[1]))})`;
-      return /^-?\d+(\.\d+)?$/.test(s) ? money(Number(s)) : value;
+      if (s.startsWith("-") && CRUDO.test(s.slice(1))) return money(Number(s));
+      return CRUDO.test(s) ? money(Number(s)) : value;
     }
 
     function toggleSidebar(force) {
@@ -2513,11 +2525,27 @@
       return a;
     }
 
-    // Ronda vigente de la unidad. Si no existe, se arma una nueva.
-    // Solo se invoca sobre el perfil activo (crea datos).
+    // Preguntas de la ronda que siguen existiendo en el banco actual. Protege
+    // contra rondas guardadas con un banco distinto (respaldo antiguo, archivo
+    // importado) que dejarian indices apuntando a preguntas inexistentes.
+    function quizOrden(unit, s) {
+      if (!s || !Array.isArray(s.orden)) return [];
+      return s.orden.filter(i => Number.isInteger(i) && unit.questions[i]);
+    }
+
+    // Ronda vigente de la unidad. Si no existe o quedó inservible, se arma una
+    // nueva. Solo se invoca sobre el perfil activo, porque crea datos.
     function quizSession(unit, p = profile()) {
       const actual = (p.quiz || {})[unit.id];
-      if (actual && Array.isArray(actual.orden) && actual.orden.length) return actual;
+      if (actual && quizOrden(unit, actual).length) {
+        // Descarta índices huérfanos para que el resto de la ronda siga sirviendo.
+        const validos = quizOrden(unit, actual);
+        if (validos.length !== actual.orden.length) {
+          actual.orden = validos;
+          writeStore();
+        }
+        return actual;
+      }
       return newQuizSession(unit, p);
     }
 
@@ -2528,19 +2556,22 @@
       const opciones = {};
       orden.forEach(i => { opciones[i] = shuffle(unit.questions[i].options.map((_, k) => k)); });
       p.quiz[unit.id] = { orden, opciones, respuestas: {} };
+      // Se persiste de inmediato: si no, recargar la página antes de responder
+      // entregaría una ronda distinta de la que el estudiante tiene en pantalla.
+      writeStore();
       return p.quiz[unit.id];
     }
 
     // Cantidad de preguntas de la ronda (sin crearla si aún no existe).
     function quizTotal(unit, p = profile()) {
       const s = (p.quiz || {})[unit.id];
-      return (s && Array.isArray(s.orden) && s.orden.length) ? s.orden.length : Math.min(QUIZ_SIZE, unit.questions.length);
+      const vigentes = quizOrden(unit, s).length;
+      return vigentes || Math.min(QUIZ_SIZE, unit.questions.length);
     }
 
     function quizComplete(unit, p = profile()) {
-      const s = (p.quiz || {})[unit.id];
-      if (!s || !Array.isArray(s.orden) || !s.orden.length) return false;
-      return answeredCount(unit, p) === s.orden.length;
+      const vigentes = quizOrden(unit, (p.quiz || {})[unit.id]).length;
+      return vigentes > 0 && answeredCount(unit, p) === vigentes;
     }
 
     function activityDone(unit, key, p = profile()) {
@@ -2598,14 +2629,12 @@
 
     function answeredCount(unit, p = profile()) {
       const s = (p.quiz || {})[unit.id];
-      if (!s || !Array.isArray(s.orden)) return 0;
-      return s.orden.filter(i => s.respuestas && s.respuestas[i] !== undefined).length;
+      return quizOrden(unit, s).filter(i => s.respuestas && s.respuestas[i] !== undefined).length;
     }
 
     function correctCount(unit, p = profile()) {
       const s = (p.quiz || {})[unit.id];
-      if (!s || !Array.isArray(s.orden)) return 0;
-      return s.orden.filter(i => s.respuestas && s.respuestas[i] === unit.questions[i].answer).length;
+      return quizOrden(unit, s).filter(i => s.respuestas && s.respuestas[i] === unit.questions[i].answer).length;
     }
 
     function profileStats(p) {
@@ -3312,7 +3341,7 @@
             ["suUtilidades", "Utilidades acumuladas", 20000]
           ]],
           ["Conciliación y ajustes", [
-            ["tránsito", "Mercadería en tránsito (enviada y no recibida)", 20000],
+            ["transito", "Mercadería en tránsito (enviada y no recibida)", 20000],
             ["carga", "Utilidad interna (carga) en el inventario final", 9000]
           ]]
         ]
@@ -3326,7 +3355,7 @@
         grupos: [
           ["Datos de la adquisición", [
             ["pctAdq", "Participación adquirida", 80, "pct"],
-            ["contraprestación", "Contraprestación transferida", 176000],
+            ["contraprestacion", "Contraprestación transferida", 176000],
             ["patAdq", "Patrimonio contable de la subsidiaria en la fecha de adquisición", 180000],
             ["ajusteVR", "Ajuste a valor razonable de los activos netos identificables", 20000],
             ["vrPNC", "Valor razonable del interés no controlador (solo si se mide a valor razonable)", 44000]
@@ -3482,13 +3511,13 @@
       const pctPNC = (100 - d.pctAdq) / 100;
       const ani = d.patAdq + d.ajusteVR;                   // activos netos identificables a valor razonable
       const pncInicial = round2(d.metodoPNC === "razonable" ? d.vrPNC : ani * pctPNC);
-      const plusvalía = round2(d.contraprestación + pncInicial - ani);
+      const plusvalia = round2(d.contraprestacion + pncInicial - ani);
       const patActual = d.sCapital + d.sUtilidades;
       const post = patActual - d.patAdq;                    // resultados posteriores a la adquisición
       const pncFinal = round2(pncInicial + pctPNC * post);
       const parteMatrizPost = round2(post - (pncFinal - pncInicial));
 
-      const invMatriz = d.contraprestación;                 // medida al costo en estados separados
+      const invMatriz = d.contraprestacion;                 // medida al costo en estados separados
       const activosMatriz = d.mActivos + d.mInventario + invMatriz;
       const ppMatriz = d.mPasivos + d.mCapital + d.mUtilidades;
       const activosSub = d.sActivos + d.sInventario;
@@ -3498,11 +3527,11 @@
       const cInventario = d.mInventario + d.sInventario - d.utilNoRealizada;
       const cPasivos = d.mPasivos + d.sPasivos - d.recíproco;
       const cUtilidades = d.mUtilidades + parteMatrizPost - d.utilNoRealizada;
-      const cActivos = cOtros + cInventario + d.ajusteVR + plusvalía;
+      const cActivos = cOtros + cInventario + d.ajusteVR + plusvalia;
       const cPP = cPasivos + d.mCapital + cUtilidades + pncFinal;
 
       return {
-        pctAdq, ani, pncInicial, plusvalía, patActual, post, pncFinal, parteMatrizPost,
+        pctAdq, ani, pncInicial, plusvalia, patActual, post, pncFinal, parteMatrizPost,
         invMatriz, activosMatriz, ppMatriz, activosSub, ppSub,
         cOtros, cInventario, cPasivos, cUtilidades, cActivos, cPP,
         cuadraMatriz: Math.abs(activosMatriz - ppMatriz) < 0.005,
@@ -3513,7 +3542,7 @@
 
     function worksheetU3(d, def) {
       const {
-        ani, pncInicial, plusvalía, patActual, post, pncFinal, parteMatrizPost,
+        ani, pncInicial, plusvalia, patActual, post, pncFinal, parteMatrizPost,
         invMatriz, activosMatriz, ppMatriz, activosSub, ppSub,
         cOtros, cInventario, cPasivos, cUtilidades, cActivos, cPP
       } = worksheetU3Calc(d);
@@ -3523,7 +3552,7 @@
         wsRow("Inventario", d.mInventario, d.sInventario, "", d.utilNoRealizada, cInventario),
         wsRow("Inversión en subsidiaria (al costo)", invMatriz, "", "", invMatriz, 0),
         wsRow("Ajuste a valor razonable de activos identificables", "", "", d.ajusteVR, "", d.ajusteVR),
-        wsRow("Plusvalía", "", "", plusvalía, "", plusvalía),
+        wsRow("Plusvalía", "", "", plusvalia, "", plusvalia),
         wsRow("Total de activos", activosMatriz, activosSub, "", "", cActivos, { total: true }),
         wsRow("Pasivos", d.mPasivos, d.sPasivos, d.recíproco, "", cPasivos),
         wsRow("Capital social", d.mCapital, d.sCapital, d.sCapital, "", d.mCapital),
@@ -3536,7 +3565,7 @@
         ["Capital social - subsidiaria", d.sCapital, "", "Eliminación del patrimonio adquirido"],
         ["Utilidades acumuladas - subsidiaria", d.sUtilidades, "", "Eliminación del patrimonio adquirido"],
         ["Activos identificables (ajuste a valor razonable)", d.ajusteVR, "", "NIIF 3: medición a valor razonable"],
-        ["Plusvalía", plusvalía, "", "Diferencia no asignada a activos identificables"],
+        ["Plusvalía", plusvalia, "", "Diferencia no asignada a activos identificables"],
         ["Inversión en subsidiaria", "", invMatriz, "Eliminación de la inversión"],
         ["Interés no controlador", "", pncFinal, "Participación no atribuible a la controladora"],
         ["Utilidades acumuladas consolidadas", "", parteMatrizPost, "Parte de la matriz en resultados posteriores"]
@@ -3554,17 +3583,17 @@
           <table class="journal">
             <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
             <tbody>
-              <tr><td>Contraprestación transferida</td><td class="num">${money(d.contraprestación)}</td></tr>
+              <tr><td>Contraprestación transferida</td><td class="num">${money(d.contraprestacion)}</td></tr>
               <tr><td>Interés no controlador en la fecha de adquisición (${d.metodoPNC === "razonable" ? "valor razonable" : `${pct(100 - d.pctAdq)} de los activos netos identificables`})</td><td class="num">${money(pncInicial)}</td></tr>
               <tr><td>Activos netos identificables a valor razonable (${money(d.patAdq)} + ${money(d.ajusteVR)})</td><td class="num">(${money(ani)})</td></tr>
-              <tr class="ws-total"><td>Plusvalía</td><td class="num">${money(plusvalía)}</td></tr>
+              <tr class="ws-total"><td>Plusvalía</td><td class="num">${money(plusvalia)}</td></tr>
               <tr><td>Resultados posteriores a la adquisición (${money(patActual)} - ${money(d.patAdq)})</td><td class="num">${money(post)}</td></tr>
               <tr><td>Parte de la matriz en resultados posteriores (${pct(d.pctAdq)})</td><td class="num">${money(parteMatrizPost)}</td></tr>
               <tr class="ws-total"><td>Interés no controlador a la fecha de consolidación</td><td class="num">${money(pncFinal)}</td></tr>
             </tbody>
           </table>
         </div>
-        ${plusvalía < 0 ? `<p class="warning"><strong>Plusvalía negativa.</strong> NIIF 3 exige revisar la identificación y medición de los activos y pasivos antes de reconocer una ganancia por compra en condiciones muy ventajosas en el resultado del periodo.</p>` : ""}
+        ${plusvalia < 0 ? `<p class="warning"><strong>Plusvalía negativa.</strong> NIIF 3 exige revisar la identificación y medición de los activos y pasivos antes de reconocer una ganancia por compra en condiciones muy ventajosas en el resultado del periodo.</p>` : ""}
         ${d.metodoPNC === "razonable" ? `<p class="footer-note">Al medir el interés no controlador a valor razonable se reconoce también la plusvalía que le corresponde (plusvalía completa).</p>` : `<p class="footer-note">Al medir el interés no controlador como proporción de los activos netos identificables, la plusvalía reconocida es solo la de la controladora.</p>`}
 
         <h4 style="margin:18px 0 6px">2. Asientos de eliminación</h4>
@@ -3591,10 +3620,10 @@
       const activosSU = d.suActivos + d.suInventario;
       const ppSU = d.suPasivos + d.suCuentaCC + d.suUtilidades;
 
-      const cuentaCCAjustada = d.suCuentaCC + d.tránsito;
+      const cuentaCCAjustada = d.suCuentaCC + d.transito;
       const difConciliacion = d.ccCuentaSucursal - cuentaCCAjustada;
 
-      const kInventario = d.ccInventario + d.suInventario + d.tránsito - d.carga;
+      const kInventario = d.ccInventario + d.suInventario + d.transito - d.carga;
       const kOtros = d.ccActivos + d.suActivos;
       const kPasivos = d.ccPasivos + d.suPasivos;
       const kUtilidades = d.ccUtilidades + d.suUtilidades - d.carga;
@@ -3619,19 +3648,19 @@
 
       const filas = [
         wsRow("Otros activos", d.ccActivos, d.suActivos, "", "", kOtros),
-        wsRow("Inventario (incluye mercadería en tránsito)", d.ccInventario, d.suInventario, d.tránsito, d.carga, kInventario),
+        wsRow("Inventario (incluye mercadería en tránsito)", d.ccInventario, d.suInventario, d.transito, d.carga, kInventario),
         wsRow("Cuenta Sucursal (activo de la casa central)", d.ccCuentaSucursal, "", "", d.ccCuentaSucursal, 0),
         wsRow("Total de activos", activosCC, activosSU, "", "", kActivos, { total: true }),
         wsRow("Pasivos", d.ccPasivos, d.suPasivos, "", "", kPasivos),
-        wsRow("Cuenta Casa central (patrimonio de la sucursal)", "", d.suCuentaCC, cuentaCCAjustada, d.tránsito, 0),
+        wsRow("Cuenta Casa central (patrimonio de la sucursal)", "", d.suCuentaCC, cuentaCCAjustada, d.transito, 0),
         wsRow("Capital social", d.ccCapital, "", "", "", d.ccCapital),
         wsRow("Utilidades acumuladas", d.ccUtilidades, d.suUtilidades, d.carga, "", kUtilidades),
         wsRow("Total de pasivo y patrimonio", ppCC, ppSU, "", "", kPP, { total: true })
       ].join("");
 
       const asiento = [
-        ["Inventario - Sucursal", d.tránsito, "", "Reconocimiento de la mercadería en tránsito"],
-        ["Casa central", "", d.tránsito, "Conciliación de la cuenta recíproca"],
+        ["Inventario - Sucursal", d.transito, "", "Reconocimiento de la mercadería en tránsito"],
+        ["Casa central", "", d.transito, "Conciliación de la cuenta recíproca"],
         ["Casa central", cuentaCCAjustada, "", "Eliminación de la cuenta recíproca conciliada"],
         ["Sucursal", "", d.ccCuentaSucursal, "Eliminación de la cuenta recíproca conciliada"],
         ["Utilidades acumuladas", d.carga, "", "Utilidad interna no realizada"],
@@ -3646,7 +3675,7 @@
             <tbody>
               <tr><td>Cuenta Sucursal en libros de la casa central</td><td class="num">${money(d.ccCuentaSucursal)}</td></tr>
               <tr><td>Cuenta Casa central en libros de la sucursal</td><td class="num">${money(d.suCuentaCC)}</td></tr>
-              <tr><td>Más: mercadería en tránsito registrada por la casa central y no recibida</td><td class="num">${money(d.tránsito)}</td></tr>
+              <tr><td>Más: mercadería en tránsito registrada por la casa central y no recibida</td><td class="num">${money(d.transito)}</td></tr>
               <tr class="ws-total"><td>Cuenta Casa central conciliada</td><td class="num">${money(cuentaCCAjustada)}</td></tr>
             </tbody>
           </table>
@@ -3686,21 +3715,42 @@
       $("wsResult").innerHTML = html;
     }
 
+    // Imprime una hoja aparte (unidad, papel de trabajo o constancia).
+    // La limpieza se hace en "afterprint" porque window.print() no siempre
+    // bloquea hasta cerrar el diálogo: quitar la hoja de inmediato dejaba
+    // páginas en blanco en Firefox y Safari. El temporizador es la red de
+    // seguridad para los navegadores que no emiten el evento.
+    function printSheet(html, modo = "printing-unit") {
+      const sheet = document.createElement("div");
+      sheet.className = "print-sheet";
+      sheet.innerHTML = html;
+      document.body.appendChild(sheet);
+      document.body.classList.add(modo);
+
+      let limpio = false;
+      const limpiar = () => {
+        if (limpio) return;
+        limpio = true;
+        document.body.classList.remove(modo);
+        sheet.remove();
+        if (window.removeEventListener) window.removeEventListener("afterprint", limpiar);
+      };
+      if (window.addEventListener) window.addEventListener("afterprint", limpiar);
+      try {
+        window.print();
+      } finally {
+        setTimeout(limpiar, 1000);
+      }
+    }
+
     function printWorksheet(unit) {
       const contenido = lastWorksheet[unit.id];
       if (!contenido) { toast("Arme primero el papel de trabajo"); return; }
-      const sheet = document.createElement("div");
-      sheet.className = "print-sheet";
-      sheet.innerHTML = `
+      printSheet(`
         <h1>${WORKSHEETS[unit.id].titulo}</h1>
         <p>${unit.title} &middot; ${escapeHtml(activeProfile)}</p>
         ${contenido}
-      `;
-      document.body.appendChild(sheet);
-      document.body.classList.add("printing-unit");
-      window.print();
-      document.body.classList.remove("printing-unit");
-      sheet.remove();
+      `);
     }
 
     function printUnit() {
@@ -3713,9 +3763,7 @@
           ? `<div class="result-box">${lastSimResult[unit.id]}</div>`
           : `<p class="footer-note">Complete el simulador en pantalla para incluir aquí su resultado calculado con NIIF 18.</p>`}
       `;
-      const sheet = document.createElement("div");
-      sheet.className = "print-sheet";
-      sheet.innerHTML = `
+      printSheet(`
         <h1>${unit.title}</h1>
         <p>${unit.subtitle}</p>
         <h3>Ejemplo resuelto</h3>
@@ -3725,12 +3773,7 @@
         ${ex.niif18 ? niif18Block(ex.niif18.filas, ex.niif18.nota) : ""}
         ${simSection}
         <p class="footer-note" style="margin-top:12px">NIIF 18 sustituye a la NIC 1; rige para periodos que inician a partir del 1 de enero de 2027, con aplicación anticipada permitida.</p>
-      `;
-      document.body.appendChild(sheet);
-      document.body.classList.add("printing-unit");
-      window.print();
-      document.body.classList.remove("printing-unit");
-      sheet.remove();
+      `);
     }
 
     // ===== Autoevaluación por rondas =====
@@ -3740,7 +3783,8 @@
     function quizHtml(unit) {
       const p = profile();
       const s = quizSession(unit, p);
-      const total = s.orden.length;
+      const orden = quizOrden(unit, s);
+      const total = orden.length;
       const respondidas = answeredCount(unit, p);
       const correctas = correctCount(unit, p);
       const terminada = respondidas === total && total > 0;
@@ -3750,14 +3794,14 @@
           <div>
             <strong>Ronda de ${total} preguntas</strong>
             <span class="footer-note" style="margin:0"> tomadas al azar del banco de ${unit.questions.length}.</span>
-            <div style="margin-top:6px"><span class="badge ${terminada ? (correctas === total ? "" : "amber") : "blue"}">${respondidas}/${total} respondidas &middot; ${correctas} correctas</span></div>
+            <div style="margin-top:6px"><span class="badge ${terminada ? (correctas === total ? "" : "amber") : "blue"}" id="quizMarcador">${respondidas}/${total} respondidas &middot; ${correctas} correctas</span></div>
           </div>
           <div class="quiz-actions">
             <button data-quiz-new class="${terminada ? "primary" : ""}">${terminada ? "Nuevo intento" : "Cambiar preguntas"}</button>
           </div>
         </div>
         <div class="flow">
-          ${s.orden.map(qIndex => {
+          ${orden.map(qIndex => {
             const q = unit.questions[qIndex];
             const perm = (s.opciones && s.opciones[qIndex]) || q.options.map((_, k) => k);
             const elegida = s.respuestas[qIndex];
@@ -3771,7 +3815,7 @@
                   return `<button class="${cls}" data-q="${qIndex}" data-option="${optionIndex}"${answered ? " disabled" : ""}>${q.options[optionIndex]}</button>`;
                 }).join("")}
               </div>
-              ${answered ? `<p class="${elegida === q.answer ? "info" : "warning"}">${elegida === q.answer ? "Correcto. " : "Respuesta incorrecta. "}${q.feedback}</p>` : ""}
+              ${answered ? `<p class="quiz-feedback ${elegida === q.answer ? "info" : "warning"}">${elegida === q.answer ? "Correcto. " : "Respuesta incorrecta. "}${q.feedback}</p>` : ""}
             </div>
           `;
           }).join("")}
@@ -3792,17 +3836,49 @@
       if (s.respuestas[qIndex] !== undefined) return;
       s.respuestas[qIndex] = optionIndex;
       // Al completar la ronda se archiva el intento para el historial y el reporte.
-      if (answeredCount(unit, p) === s.orden.length) {
+      const total = quizOrden(unit, s).length;
+      if (answeredCount(unit, p) === total) {
         if (!p.quizAttempts) p.quizAttempts = {};
         if (!p.quizAttempts[unit.id]) p.quizAttempts[unit.id] = [];
         p.quizAttempts[unit.id].push({
           fecha: new Date().toLocaleString("es-CR"),
           correctas: correctCount(unit, p),
-          total: s.orden.length
+          total
         });
       }
       writeStore();
-      renderUnit();
+
+      // La pregunta se actualiza en su sitio. Repintar el bloque completo
+      // colapsaba la altura del documento por un instante y el navegador
+      // devolvía la página al inicio, perdiendo el punto de lectura.
+      const q = unit.questions[qIndex];
+      const acierto = optionIndex === q.answer;
+      document.querySelectorAll(`[data-q="${qIndex}"]`).forEach(btn => {
+        const oi = Number(btn.dataset.option);
+        btn.disabled = true;
+        if (oi === q.answer) btn.classList.add("correct");
+        else if (oi === optionIndex) btn.classList.add("incorrect");
+      });
+      const primero = document.querySelector(`[data-q="${qIndex}"]`);
+      const bloque = primero && primero.closest ? primero.closest(".quiz-options") : null;
+      if (bloque && bloque.parentNode && !bloque.parentNode.querySelector(".quiz-feedback")) {
+        const nota = document.createElement("p");
+        nota.className = `quiz-feedback ${acierto ? "info" : "warning"}`;
+        nota.textContent = `${acierto ? "Correcto. " : "Respuesta incorrecta. "}${q.feedback}`;
+        bloque.parentNode.appendChild(nota);
+      }
+      const marcador = $("quizMarcador");
+      if (marcador) {
+        marcador.textContent = `${answeredCount(unit, p)}/${total} respondidas · ${correctCount(unit, p)} correctas`;
+      }
+
+      // Al cerrar la ronda sí se repinta: cambian el resumen y el historial.
+      if (answeredCount(unit, p) === total) {
+        renderTab(unit);
+        refreshUnitProgress();
+      } else {
+        refreshUnitProgress();
+      }
     }
 
     // ===== Examen integrador =====
@@ -3831,19 +3907,27 @@
       renderExam();
     }
 
+    // Pregunta del examen, o null si el banco ya no la contiene (respaldo de
+    // otra versión). Evita que la revisión falle por un índice huérfano.
+    function examPregunta(item) {
+      const u = item && units[item.u];
+      return (u && u.questions[item.q]) || null;
+    }
+
     // Segundos restantes según la hora de inicio guardada: recargar la página
-    // no reinicia el reloj.
+    // no reinicia el reloj. Si la marca de inicio es inválida, se da por agotado.
     function examRemaining(e) {
-      if (!e) return 0;
+      if (!e || !isFinite(e.inicio) || !isFinite(e.minutos)) return 0;
       const transcurrido = Math.floor((Date.now() - e.inicio) / 1000);
-      return Math.max(0, e.minutos * 60 - transcurrido);
+      const queda = e.minutos * 60 - transcurrido;
+      return isFinite(queda) ? Math.max(0, queda) : 0;
     }
 
     function examGrade(e) {
       let correctas = 0;
       e.preguntas.forEach((item, i) => {
-        const q = units[item.u].questions[item.q];
-        if (e.respuestas[i] === q.answer) correctas++;
+        const q = examPregunta(item);
+        if (q && e.respuestas[i] === q.answer) correctas++;
       });
       const total = e.preguntas.length;
       return { correctas, total, nota: total ? Math.round(correctas / total * 100) : 0 };
@@ -3874,13 +3958,26 @@
       toast(`Examen finalizado: ${r.correctas}/${r.total} (${r.nota}%)`);
     }
 
+    // Marca la respuesta y actualiza solo lo que cambia. Repintar la pantalla
+    // completa en cada clic reiniciaba el cronómetro, volvía a crear las doce
+    // preguntas y hacía saltar la página al inicio.
     function answerExam(i, optionIndex) {
       const p = profile();
       const e = p.examEnCurso;
       if (!e) return;
       e.respuestas[i] = optionIndex;
       writeStore();
-      renderExam();
+
+      document.querySelectorAll(`[data-exam="${i}"]`).forEach(btn => {
+        const elegido = Number(btn.dataset.option) === optionIndex;
+        btn.classList.toggle("elegida", elegido);
+        btn.setAttribute("aria-pressed", String(elegido));
+      });
+      const respondidas = Object.keys(e.respuestas).length;
+      const barra = document.querySelector("#examScreen .progress > span");
+      if (barra) barra.style.width = `${Math.round(respondidas / e.preguntas.length * 100)}%`;
+      const contador = $("examContador");
+      if (contador) contador.textContent = `${respondidas} de ${e.preguntas.length} preguntas respondidas.`;
     }
 
     function mmss(seg) {
@@ -3909,16 +4006,17 @@
             <div class="panel-body">
               <p class="warning">No se muestra la respuesta correcta hasta finalizar. Puede cambiar sus respuestas mientras quede tiempo. Al agotarse el tiempo, el examen se entrega automáticamente.</p>
               <div class="progress"><span style="width:${Math.round(respondidas / e.preguntas.length * 100)}%"></span></div>
-              <p class="footer-note">${respondidas} de ${e.preguntas.length} preguntas respondidas.</p>
+              <p class="footer-note" id="examContador">${respondidas} de ${e.preguntas.length} preguntas respondidas.</p>
               <div class="flow">
                 ${e.preguntas.map((item, i) => {
-                  const q = units[item.u].questions[item.q];
+                  const q = examPregunta(item);
+                  if (!q) return "";
                   return `
                     <div>
                       <span class="badge ${units[item.u].color}">${units[item.u].short}</span>
                       <strong style="display:block;margin-top:6px">${q.q}</strong>
-                      <div class="quiz-options">
-                        ${item.perm.map(oi => `<button class="${e.respuestas[i] === oi ? "active-answer" : ""}" style="${e.respuestas[i] === oi ? "border-color:var(--blue);font-weight:700" : ""}" data-exam="${i}" data-option="${oi}">${q.options[oi]}</button>`).join("")}
+                      <div class="quiz-options" role="group" aria-label="Opciones de la pregunta ${i + 1}">
+                        ${item.perm.map(oi => `<button class="${e.respuestas[i] === oi ? "elegida" : ""}" data-exam="${i}" data-option="${oi}" aria-pressed="${e.respuestas[i] === oi}">${q.options[oi]}</button>`).join("")}
                       </div>
                     </div>
                   `;
@@ -3973,7 +4071,8 @@
               <h4 style="margin:16px 0 6px">Revisión de respuestas</h4>
               <div class="flow">
                 ${(r.detalle || []).map(d => {
-                  const q = units[d.u].questions[d.q];
+                  const q = examPregunta(d);
+                  if (!q) return "";
                   const ok = d.elegida === q.answer;
                   return `
                     <div>
@@ -4018,20 +4117,20 @@
     ];
 
     function cursoLinea(c) {
-      return CURSO_CAMPOS.map(([k]) => (c || {})[k]).filter(Boolean).join(" &middot; ");
+      return CURSO_CAMPOS.map(([k]) => (c || {})[k]).filter(Boolean).join(" - ");
     }
 
     function cursoHeaderHtml(c) {
-      const línea = cursoLinea(c);
+      const linea = cursoLinea(c);
       return `
         <div class="panel" style="margin-bottom:16px">
           <div class="panel-head">
-            <h3>${línea ? escapeHtml(String(línea).replace(/ &middot; /g, " - ")) : "Datos del curso"}</h3>
+            <h3>${linea ? escapeHtml(linea) : "Datos del curso"}</h3>
             <span class="badge">${new Date().toLocaleDateString("es-CR")}</span>
           </div>
           <div class="panel-body">
-            <details ${línea ? "" : "open"}>
-              <summary style="cursor:pointer;font-weight:700;color:var(--blue)">${línea ? "Editar datos del curso" : "Complete los datos del curso para el reporte y la constancia"}</summary>
+            <details ${linea ? "" : "open"}>
+              <summary style="cursor:pointer;font-weight:700;color:var(--blue)">${linea ? "Editar datos del curso" : "Complete los datos del curso para el reporte y la constancia"}</summary>
               <div class="form-grid" style="margin-top:10px">
                 ${CURSO_CAMPOS.map(([k, label]) => `
                   <label>
@@ -4060,8 +4159,8 @@
           </div>
         `;
       }).join("");
-      const etiqueta = units.map((u, i) => `${u.short}: ${unitProgress(u, p)}%`).join(", ");
-      return `<div class="bar-chart" role="img" aria-label="Avance por unidad. ${etiqueta}.">${filas}</div>`;
+      const etiqueta = units.map(u => `${u.short}: ${unitProgress(u, p)}%`).join(", ");
+      return `<div class="bar-chart" role="img" aria-label="Avance por unidad. ${escapeHtml(etiqueta)}.">${filas}</div>`;
     }
 
     function printCertificate() {
@@ -4071,15 +4170,13 @@
       if (rate < 100) { toast("La constancia requiere 100% de avance"); return; }
       const correctas = units.reduce((s, u) => s + correctCount(u, p), 0);
       const preguntas = units.reduce((s, u) => s + quizTotal(u, p), 0);
-      const sheet = document.createElement("div");
-      sheet.className = "print-sheet";
-      sheet.innerHTML = `
+      printSheet(`
         <div class="cert">
           <h2>Constancia de finalización</h2>
           <p>${escapeHtml(c.institucion || "")}</p>
           <p class="footer-note" style="margin:0">Se hace constar que</p>
           <div class="cert-name">${escapeHtml(activeProfile)}</div>
-          <p>completo la totalidad de las actividades del módulo <strong>${escapeHtml(c.curso || "Contabilidad Avanzada - EEFF Consolidados")}</strong>,
+          <p>completó la totalidad de las actividades del módulo <strong>${escapeHtml(c.curso || "Contabilidad Avanzada - EEFF Consolidados")}</strong>,
           integrado por cuatro unidades bajo NIIF completas: expansión empresarial, agencias y sucursales,
           inversión en subsidiarias y empresas asociadas.</p>
           <p class="footer-note">Avance registrado: ${rate}% &middot; Autoevaluaciones: ${correctas} de ${preguntas} respuestas correctas${p.exam ? ` &middot; Examen integrador: ${p.exam.nota}% (${p.exam.aprobado ? "aprobado" : "no aprobado"})` : ""}.</p>
@@ -4088,14 +4185,9 @@
             <div>${escapeHtml(c.docente || "Docente")}</div>
             <div>Fecha: ${new Date().toLocaleDateString("es-CR")}</div>
           </div>
-          <p class="footer-note" style="margin-top:22px">Documento generado por la herramienta educativa EEFF Consolidados a partir del avance registrado en este navegador. Es un comprobante de práctica y no sustituye la certificación oficial de la institucion.</p>
+          <p class="footer-note" style="margin-top:22px">Documento generado por la herramienta educativa EEFF Consolidados a partir del avance registrado en este navegador. Es un comprobante de práctica y no sustituye la certificación oficial de la institución.</p>
         </div>
-      `;
-      document.body.appendChild(sheet);
-      document.body.classList.add("printing-cert");
-      window.print();
-      document.body.classList.remove("printing-cert");
-      sheet.remove();
+      `, "printing-cert");
     }
 
     function renderReport() {
@@ -4153,7 +4245,7 @@
                 <p>${feedbackText()}</p>
                 <div class="panel-actions">
                   <button id="printReport">Imprimir o guardar PDF</button>
-                  <button id="printCert" class="primary" ${rate === 100 ? "" : "disabled title=\"Disponible al alcanzar el 100% de avance\""}>Constancia de finalización</button>
+                  <button id="printCert" class="primary" title="${rate === 100 ? "Genera la constancia en PDF" : "Disponible al alcanzar el 100 % de avance"}"${rate === 100 ? "" : " disabled"}>Constancia de finalización</button>
                 </div>
                 ${rate === 100
                   ? `<p class="footer-note">Ha completado las cuatro unidades. Puede generar su constancia.</p>`
@@ -4235,10 +4327,9 @@
       if (!name || !store.profiles[name]) return;
       if (!confirm(`Reiniciar el progreso de "${name}"? Se conserva el perfil, pero se borran conceptos, ejercicios, notas y autoevaluaciones.`)) return;
       const role = store.profiles[name].role || "estudiante";
-      store.profiles[name] = {
-        role, notes: {}, quiz: {}, complete: {}, activity: {}, rubric: {},
-        updatedAt: new Date().toISOString()
-      };
+      // normalizeProfile garantiza que el perfil quede con todas las secciones
+      // de la versión vigente (papeles de trabajo, intentos, examen).
+      store.profiles[name] = normalizeProfile({ role, updatedAt: new Date().toISOString() });
       writeStore();
       render();
       toast("Progreso reiniciado: " + name);
@@ -4655,8 +4746,20 @@
         });
       });
       $("printCasos").addEventListener("click", () => {
-        document.querySelectorAll("#casosScreen details").forEach(det => { det.open = true; });
-        window.print();
+        // Se despliegan todos los casos para que el PDF salga completo y se
+        // devuelven a su estado original al terminar de imprimir.
+        const cerrados = [...document.querySelectorAll("#casosScreen details")].filter(d => !d.open);
+        cerrados.forEach(d => { d.open = true; });
+        const restaurar = () => {
+          cerrados.forEach(d => { d.open = false; });
+          if (window.removeEventListener) window.removeEventListener("afterprint", restaurar);
+        };
+        if (window.addEventListener) window.addEventListener("afterprint", restaurar);
+        try {
+          window.print();
+        } finally {
+          setTimeout(restaurar, 1000);
+        }
       });
     }
 

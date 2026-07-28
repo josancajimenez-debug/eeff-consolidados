@@ -19,7 +19,7 @@ También corren **automáticamente en GitHub Actions** con cada push a `main`
 (ver `.github/workflows/pruebas.yml`), justo antes de que el sitio publicado
 quede disponible para los estudiantes.
 
-## Qué valida (80 comprobaciones)
+## Qué valida (96 comprobaciones)
 
 **Pantallas**
 - Panel, Glosario (con búsqueda), Bibliografía, Manual, Examen integrador,
@@ -37,8 +37,17 @@ quede disponible para los estudiantes.
   y comprobación de que **sin conciliar las partidas en tránsito el papel NO
   cuadra** (el cuadre no está forzado).
 - Que los asientos de todos los casos cuadren (Debe = Haber).
-- Formateadores de importes (`fmtAmount`, `fmtImporte`) y lógica de avance
-  (pesos suman 100 %, `unitProgress` parte de 0).
+- Formato de importes: punto para los miles, coma para los decimales, negativos,
+  valores no numéricos y —lo más delicado— que un importe **ya formateado no se
+  vuelva a formatear** (`80.000` no debe convertirse en `80`).
+- Lógica de avance (pesos suman 100 %, `unitProgress` parte de 0).
+
+**Robustez**
+- Rondas de autoevaluación guardadas con un banco de preguntas distinto: los
+  índices huérfanos se descartan sin romper la pantalla.
+- Exámenes guardados que apuntan a preguntas inexistentes.
+- `examRemaining` con marca de inicio inválida.
+- Reiniciar un perfil deja la estructura completa de la versión vigente.
 
 **Datos**
 - Respaldo e importación: ida y vuelta conservando el progreso, rechazo de JSON
