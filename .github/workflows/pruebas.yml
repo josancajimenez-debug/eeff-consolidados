@@ -1,0 +1,33 @@
+name: Pruebas
+
+# El sitio se publica solo con cada push a main (GitHub Pages, deploy from branch).
+# Esta verificacion corre antes de que nadie use el sitio publicado y avisa por
+# correo si algo se rompio.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  regresion:
+    name: Suite de regresion
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar la suite de regresion
+        run: node pruebas/verificar.js
+
+      - name: Verificar que el archivo principal se pueda abrir
+        run: |
+          test -f EEFF_Consolidados.html
+          test -f index.html
+          test -f portada.jpg
