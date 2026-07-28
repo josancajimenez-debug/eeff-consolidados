@@ -1119,6 +1119,7 @@
           <button id="goDashboard" data-screen="dashboard">Panel</button>
           <button id="goGlossary" data-screen="glossary">Glosario</button>
           <button id="goCasos" data-screen="casos">Casos resueltos</button>
+          <button id="goExam" data-screen="exam">Examen</button>
           <button id="goReport" data-screen="report">Reporte</button>
           <button id="goBibliography" data-screen="bibliography">Bibliografia</button>
           <button id="goManual" data-screen="manual">Manual</button>
@@ -1129,6 +1130,7 @@
       <section id="unitScreen" class="screen"></section>
       <section id="glossaryScreen" class="screen"></section>
       <section id="casosScreen" class="screen"></section>
+      <section id="examScreen" class="screen"></section>
       <section id="reportScreen" class="screen"></section>
       <section id="bibliographyScreen" class="screen"></section>
       <section id="manualScreen" class="screen"></section>
@@ -1199,6 +1201,60 @@
             options: ["El color del contrato", "La transferencia de control y riesgos economicos segun la transaccion", "La ubicacion fisica del inventario solamente"],
             answer: 1,
             feedback: "La forma juridica y economica de la transaccion determina si hay venta, comision o consignacion."
+          },
+          {
+            q: "En una venta en consignación, el consignante reconoce el ingreso:",
+            options: ["Al despachar la mercadería al consignatario", "Cuando el consignatario vende al cliente final", "Al emitir la factura de traslado"],
+            answer: 1,
+            feedback: "En consignación no hay transferencia de control al consignatario: el inventario sigue siendo del consignante hasta la venta a un tercero (NIIF 15)."
+          },
+          {
+            q: "La entidad actúa como agente, y no como principal, cuando:",
+            options: ["Controla el bien antes de transferirlo al cliente", "Solo gestiona la venta a cambio de una comisión, sin controlar el bien", "Fija libremente el precio y asume el riesgo de inventario"],
+            answer: 1,
+            feedback: "El agente reconoce como ingreso únicamente su comisión, no el importe bruto de la venta (NIIF 15)."
+          },
+          {
+            q: "Según NIC 2, el inventario se mide al:",
+            options: ["Costo histórico en todos los casos", "Menor entre el costo y el valor neto realizable", "Valor razonable menos costos de venta"],
+            answer: 1,
+            feedback: "Cuando el valor neto realizable cae por debajo del costo, se reconoce la rebaja como gasto del periodo."
+          },
+          {
+            q: "Ante devoluciones esperadas sobre las ventas del periodo, la entidad debe:",
+            options: ["Esperar a que ocurran para registrar algo", "Estimar la contraprestación variable, reconocer un pasivo por reembolso y un activo por el derecho a recuperar el producto", "Registrar un gasto por cuentas incobrables"],
+            answer: 1,
+            feedback: "Las devoluciones son contraprestación variable: reducen el ingreso reconocido y generan el pasivo y el activo correspondientes (NIIF 15)."
+          },
+          {
+            q: "El informe de resultados por canal interno de distribución:",
+            options: ["Sustituye la información por segmentos de NIIF 8", "Es una herramienta de gestión que debe conciliar con los estados financieros generales", "Debe presentarse siempre en las notas a los estados financieros"],
+            answer: 1,
+            feedback: "Es información de gestión. La información por segmentos de NIIF 8 tiene requisitos propios y solo aplica a entidades con instrumentos cotizados."
+          },
+          {
+            q: "Un distribuidor externo que compra en firme y revende por su cuenta y riesgo:",
+            options: ["Genera una venta para la entidad al transferirse el control", "Obliga a consolidar sus estados financieros", "Mantiene el inventario en libros de la entidad hasta la venta final"],
+            answer: 0,
+            feedback: "Al comprar en firme obtiene el control: para la entidad es una venta, aunque el producto todavía no llegue al consumidor."
+          },
+          {
+            q: "Los descuentos por volumen pactados en el contrato con el distribuidor:",
+            options: ["Se presentan como gasto de ventas", "Reducen el importe del ingreso por tratarse de contraprestación variable", "No se contabilizan hasta que se liquidan en efectivo"],
+            answer: 1,
+            feedback: "La contraprestación variable se estima y limita para que sea altamente probable que no ocurra una reversión significativa del ingreso."
+          },
+          {
+            q: "El traslado de mercadería a un distribuidor interno de la misma entidad:",
+            options: ["Genera ingreso y costo de ventas de inmediato", "No genera ingreso: es un movimiento interno de inventario", "Obliga a eliminar utilidades no realizadas en la consolidación"],
+            answer: 1,
+            feedback: "No hay un cliente externo ni transferencia de control fuera de la entidad; solo se reclasifica el inventario por centro de responsabilidad."
+          },
+          {
+            q: "Una garantía que ofrece al cliente un servicio adicional al aseguramiento de que el producto funcione:",
+            options: ["Se trata siempre como provisión de NIC 37", "Es una obligación de desempeño separada y se le asigna parte del precio de la transacción", "No tiene efecto contable"],
+            answer: 1,
+            feedback: "NIIF 15 distingue la garantía tipo servicio (obligación de desempeño separada) de la garantía de aseguramiento (provisión bajo NIC 37)."
           }
         ]
       },
@@ -1266,6 +1322,54 @@
             options: ["El efectivo con terceros", "La cuenta reciproca casa central/sucursal", "Todo el inventario final"],
             answer: 1,
             feedback: "Las cuentas reciprocas no representan derechos u obligaciones frente a terceros."
+          },
+          {
+            q: "Una sucursal, frente a una subsidiaria, se caracteriza porque:",
+            options: ["Es una entidad jurídica distinta que se consolida bajo NIIF 10", "No es una entidad jurídica separada: sus operaciones forman parte de los mismos estados financieros", "Se mide por el método de participación"],
+            answer: 1,
+            feedback: "Por eso se preparan estados combinados y no estados consolidados: no hay dos entidades, sino una sola con establecimientos dependientes."
+          },
+          {
+            q: "La cuenta Casa central en libros de la sucursal y la cuenta Sucursal en libros de la casa central deben:",
+            options: ["Presentarse por separado en el balance combinado", "Ser recíprocas y conciliar; su diferencia indica partidas en tránsito", "Sumarse para determinar el patrimonio del grupo"],
+            answer: 1,
+            feedback: "La diferencia normalmente corresponde a mercadería o efectivo enviados y aún no registrados por el destinatario."
+          },
+          {
+            q: "La mercadería facturada a la sucursal con sobreprecio (carga) genera:",
+            options: ["Una utilidad realizada de inmediato", "Una utilidad interna que debe eliminarse mientras el inventario no se venda a terceros", "Un gasto de distribución"],
+            answer: 1,
+            feedback: "La utilidad solo se realiza cuando el inventario sale hacia un cliente externo a la entidad."
+          },
+          {
+            q: "Una agencia que opera con fondo fijo y no lleva contabilidad completa:",
+            options: ["Prepara sus propios estados financieros para consolidar", "Remite pedidos a la casa central, que registra las ventas y controla el fondo por reembolso", "Reconoce el ingreso al remitir el pedido"],
+            answer: 1,
+            feedback: "La agencia es un punto de promoción y toma de pedidos; el control contable permanece en la casa central."
+          },
+          {
+            q: "Si la casa central envió mercadería por 20.000 al cierre y la sucursal aún no la recibe, en el estado combinado corresponde:",
+            options: ["Ignorar la partida por ser interna", "Reconocer la mercadería en tránsito antes de eliminar la cuenta recíproca", "Registrar una venta de la casa central a la sucursal"],
+            answer: 1,
+            feedback: "Primero se concilian las partidas en tránsito; solo después se eliminan los saldos recíprocos ya cuadrados."
+          },
+          {
+            q: "Los gastos que la casa central paga por cuenta de la sucursal:",
+            options: ["Se registran únicamente en la casa central", "Se cargan a la sucursal a través de la cuenta recíproca y afectan su resultado", "Se consideran aportes de capital"],
+            answer: 1,
+            feedback: "El resultado de la sucursal debe reflejar todos los gastos que le corresponden, sin importar quién los desembolsó."
+          },
+          {
+            q: "El estado combinado de casa central y sucursales:",
+            options: ["Presenta interés no controlador", "Suma ambos conjuntos de libros y elimina saldos recíprocos y utilidades internas", "Requiere plusvalía por la diferencia entre libros"],
+            answer: 1,
+            feedback: "El interés no controlador y la plusvalía pertenecen a la consolidación de subsidiarias (NIIF 10 y NIIF 3), no a la combinación de sucursales."
+          },
+          {
+            q: "Al cierre del periodo, el resultado de la sucursal:",
+            options: ["Se traslada a la casa central y se cierra contra la cuenta recíproca", "Se distribuye como dividendo", "Permanece indefinidamente en libros de la sucursal"],
+            answer: 0,
+            feedback: "La sucursal no tiene patrimonio propio frente a terceros: su resultado se traslada a la casa central por la cuenta de enlace."
           }
         ]
       },
@@ -1331,6 +1435,54 @@
             options: ["Solo al valor nominal", "Al costo, segun NIIF 9 o por metodo de participacion", "Siempre por consolidacion linea por linea"],
             answer: 1,
             feedback: "La consolidacion corresponde a estados consolidados; los estados separados tienen politicas permitidas por NIC 27."
+          },
+          {
+            q: "Los tres elementos del control según NIIF 10 son:",
+            options: ["Poder, exposición a rendimientos variables y capacidad de usar el poder para afectar esos rendimientos", "Mayoría de acciones, mayoría del consejo y mayoría de votos", "Influencia significativa, control conjunto y control"],
+            answer: 0,
+            feedback: "Los tres elementos deben cumplirse simultáneamente; el porcentaje de voto es solo un indicio."
+          },
+          {
+            q: "La plusvalía surge de:",
+            options: ["El exceso de la contraprestación más el interés no controlador sobre el valor razonable de los activos netos identificables", "La diferencia entre el valor en libros y el valor nominal de las acciones", "La utilidad acumulada de la subsidiaria"],
+            answer: 0,
+            feedback: "Bajo NIIF 3 la plusvalía no se amortiza: se somete a prueba de deterioro al menos anualmente (NIC 36)."
+          },
+          {
+            q: "El interés no controlador puede medirse, en la fecha de adquisición:",
+            options: ["Solo a valor razonable", "A valor razonable o como su proporción en los activos netos identificables", "Solo al valor nominal de las acciones"],
+            answer: 1,
+            feedback: "NIIF 3 permite ambas opciones, transacción por transacción. Medirlo a valor razonable reconoce también la plusvalía atribuible al interés no controlador."
+          },
+          {
+            q: "En la consolidación, la venta de inventario de la matriz a la subsidiaria que aún no se ha revendido a terceros:",
+            options: ["Se mantiene tal cual porque hay dos entidades jurídicas", "Se elimina el ingreso, el costo y la utilidad no realizada contenida en el inventario", "Se reconoce como dividendo"],
+            answer: 1,
+            feedback: "El grupo se presenta como una sola entidad económica: no puede reconocer resultados por operaciones consigo mismo."
+          },
+          {
+            q: "Antes de consolidar, la matriz debe:",
+            options: ["Homogeneizar políticas contables y usar la misma fecha de cierre", "Convertir todas las cifras a valor razonable", "Liquidar los saldos intragrupo en efectivo"],
+            answer: 0,
+            feedback: "NIIF 10 exige uniformidad de políticas contables y fechas de cierre coincidentes (o ajustes cuando la diferencia no supera tres meses)."
+          },
+          {
+            q: "El interés no controlador se presenta en el estado consolidado de situación financiera:",
+            options: ["Dentro del pasivo no corriente", "Dentro del patrimonio, separado del patrimonio atribuible a los propietarios de la controladora", "Como una cuenta de orden"],
+            answer: 1,
+            feedback: "Es participación residual en los activos netos del grupo, por lo tanto patrimonio, pero identificado por separado."
+          },
+          {
+            q: "Cuando el precio pagado resulta menor que la participación en el valor razonable de los activos netos identificables:",
+            options: ["Se registra plusvalía negativa en el patrimonio", "Se revisa la identificación y medición y, confirmada la diferencia, se reconoce una ganancia en resultados", "Se difiere en cinco años"],
+            answer: 1,
+            feedback: "Es una compra en condiciones muy ventajosas: NIIF 3 obliga a revisar el proceso antes de reconocer la ganancia."
+          },
+          {
+            q: "Los dividendos que la subsidiaria declara a la matriz, en los estados consolidados:",
+            options: ["Se presentan como ingreso financiero", "Se eliminan en su totalidad por ser intragrupo", "Aumentan la plusvalía"],
+            answer: 1,
+            feedback: "En estados separados por el método del costo sí serían ingreso; en consolidación son un movimiento interno del grupo."
           }
         ]
       },
@@ -1395,6 +1547,54 @@
             options: ["Aumentan siempre la inversion", "Reducen el importe en libros de la inversion", "Se eliminan como ventas internas"],
             answer: 1,
             feedback: "Los dividendos son recuperacion de la inversion y reducen su saldo contable."
+          },
+          {
+            q: "La presunción de influencia significativa de NIC 28 opera a partir de:",
+            options: ["10% del poder de voto", "20% o más del poder de voto, salvo evidencia en contrario", "50% más una acción"],
+            answer: 1,
+            feedback: "Es una presunción refutable: puede existir influencia con menos del 20% si se demuestra, y no existir con más si se prueba lo contrario."
+          },
+          {
+            q: "El costo inicial de la inversión en una asociada incluye:",
+            options: ["Solo el precio de las acciones", "El precio pagado más los costos de transacción directamente atribuibles", "El precio pagado menos los dividendos futuros esperados"],
+            answer: 1,
+            feedback: "A diferencia de NIIF 3 para combinaciones de negocios, en NIC 28 los costos de transacción sí forman parte del costo de la inversión."
+          },
+          {
+            q: "Si la asociada reconoce una ganancia en otro resultado integral, el inversionista:",
+            options: ["No registra nada hasta que se realice", "Reconoce su participación también en otro resultado integral y ajusta la inversión", "La lleva íntegramente a resultados del periodo"],
+            answer: 1,
+            feedback: "El método de participación replica la naturaleza de la partida en la asociada: resultados con resultados, ORI con ORI."
+          },
+          {
+            q: "Cuando la participación del inversionista en las pérdidas iguala o supera su participación en la asociada:",
+            options: ["Se sigue reconociendo la pérdida sin límite", "Se deja de reconocer la pérdida, salvo que exista obligación legal o implícita de cubrirla", "Se reversa la inversión contra patrimonio"],
+            answer: 1,
+            feedback: "La inversión no se reduce por debajo de cero: las pérdidas adicionales se controlan extracontablemente para compensarlas con utilidades futuras."
+          },
+          {
+            q: "En una venta de inventario del inversionista a su asociada, aún en existencias:",
+            options: ["Se elimina el 100% de la utilidad", "Se elimina la utilidad no realizada en la proporción de la participación del inversionista", "No se elimina nada por tratarse de entidades independientes"],
+            answer: 1,
+            feedback: "A diferencia de la consolidación de subsidiarias, en asociadas la eliminación es proporcional al porcentaje de participación."
+          },
+          {
+            q: "El deterioro de una inversión en asociada se evalúa:",
+            options: ["Comparando el importe recuperable con el valor en libros, sobre la inversión como un todo", "Separando la plusvalía implícita para probarla por aparte", "Solo cuando la asociada se liquida"],
+            answer: 0,
+            feedback: "La plusvalía implícita no se prueba por separado: la inversión se somete a la prueba de deterioro de NIC 36 como un solo activo."
+          },
+          {
+            q: "Un negocio conjunto, según NIIF 11:",
+            options: ["Se consolida línea por línea", "Se contabiliza por el método de participación, igual que una asociada", "Se mide siempre a valor razonable"],
+            answer: 1,
+            feedback: "Los negocios conjuntos aplican NIC 28. Las operaciones conjuntas, en cambio, reconocen activos, pasivos, ingresos y gastos según la participación."
+          },
+          {
+            q: "Las transacciones del inversionista con su asociada deben revelarse:",
+            options: ["Como partes relacionadas conforme a NIC 24", "Solo si superan el 10% de los activos", "Únicamente en los estados consolidados"],
+            answer: 0,
+            feedback: "La influencia significativa convierte a la asociada en parte relacionada, con revelaciones obligatorias sobre saldos y transacciones."
           }
         ]
       }
@@ -2086,6 +2286,21 @@
         if (!p.quizAttempts) p.quizAttempts = {};
         if (!p.exam) p.exam = null;
         if (!p.role) p.role = "estudiante";
+        // v1 guardaba las respuestas como arreglo indexado por pregunta.
+        // Se convierte a ronda con orden explicito, conservando lo respondido.
+        Object.keys(p.quiz).forEach(uid => {
+          const q = p.quiz[uid];
+          if (Array.isArray(q)) {
+            const orden = [];
+            const respuestas = {};
+            q.forEach((valor, i) => {
+              if (valor !== undefined && valor !== null) { orden.push(i); respuestas[i] = valor; }
+            });
+            p.quiz[uid] = { orden, opciones: {}, respuestas };
+          } else if (!q || typeof q !== "object" || !Array.isArray(q.orden)) {
+            delete p.quiz[uid];
+          }
+        });
       });
       if (!s.curso || typeof s.curso !== "object") {
         s.curso = { institucion: "", curso: "", grupo: "", docente: "", periodo: "" };
@@ -2249,7 +2464,8 @@
 
     function setScreen(screen) {
       activeScreen = screen;
-      ["dashboard", "unit", "glossary", "casos", "report", "bibliography", "manual"].forEach(name => {
+      if (screen !== "exam") examStop();
+      ["dashboard", "unit", "glossary", "casos", "exam", "report", "bibliography", "manual"].forEach(name => {
         $(`${name}Screen`).classList.toggle("active", name === screen);
       });
       // Marca la seccion vigente para lectores de pantalla.
@@ -2271,8 +2487,46 @@
       { key: "quiz", label: "Autoevaluacion respondida", weight: 20 }
     ];
 
+    // Preguntas que se plantean en cada ronda de autoevaluacion.
+    const QUIZ_SIZE = 5;
+
+    function shuffle(list) {
+      const a = list.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+
+    // Ronda vigente de la unidad. Si no existe, se arma una nueva.
+    // Solo se invoca sobre el perfil activo (crea datos).
+    function quizSession(unit, p = profile()) {
+      const actual = (p.quiz || {})[unit.id];
+      if (actual && Array.isArray(actual.orden) && actual.orden.length) return actual;
+      return newQuizSession(unit, p);
+    }
+
+    function newQuizSession(unit, p = profile()) {
+      if (!p.quiz) p.quiz = {};
+      const total = Math.min(QUIZ_SIZE, unit.questions.length);
+      const orden = shuffle(unit.questions.map((_, i) => i)).slice(0, total);
+      const opciones = {};
+      orden.forEach(i => { opciones[i] = shuffle(unit.questions[i].options.map((_, k) => k)); });
+      p.quiz[unit.id] = { orden, opciones, respuestas: {} };
+      return p.quiz[unit.id];
+    }
+
+    // Cantidad de preguntas de la ronda (sin crearla si aun no existe).
+    function quizTotal(unit, p = profile()) {
+      const s = (p.quiz || {})[unit.id];
+      return (s && Array.isArray(s.orden) && s.orden.length) ? s.orden.length : Math.min(QUIZ_SIZE, unit.questions.length);
+    }
+
     function quizComplete(unit, p = profile()) {
-      return answeredCount(unit, p) === unit.questions.length;
+      const s = (p.quiz || {})[unit.id];
+      if (!s || !Array.isArray(s.orden) || !s.orden.length) return false;
+      return answeredCount(unit, p) === s.orden.length;
     }
 
     function activityDone(unit, key, p = profile()) {
@@ -2329,13 +2583,15 @@
     }
 
     function answeredCount(unit, p = profile()) {
-      const answers = (p.quiz || {})[unit.id] || [];
-      return unit.questions.filter((_, index) => answers[index] !== undefined).length;
+      const s = (p.quiz || {})[unit.id];
+      if (!s || !Array.isArray(s.orden)) return 0;
+      return s.orden.filter(i => s.respuestas && s.respuestas[i] !== undefined).length;
     }
 
     function correctCount(unit, p = profile()) {
-      const answers = (p.quiz || {})[unit.id] || [];
-      return unit.questions.filter((question, index) => answers[index] === question.answer).length;
+      const s = (p.quiz || {})[unit.id];
+      if (!s || !Array.isArray(s.orden)) return 0;
+      return s.orden.filter(i => s.respuestas && s.respuestas[i] === unit.questions[i].answer).length;
     }
 
     function profileStats(p) {
@@ -2343,6 +2599,9 @@
         rate: completionRate(p),
         reviewed: units.filter(u => (p.complete || {})[u.id]).length,
         correct: units.reduce((sum, u) => sum + correctCount(u, p), 0),
+        preguntas: units.reduce((sum, u) => sum + quizTotal(u, p), 0),
+        intentos: units.reduce((sum, u) => sum + (((p.quizAttempts || {})[u.id] || []).length), 0),
+        examen: p.exam || null,
         notes: units.filter(u => (p.notes || {})[u.id]).length
       };
     }
@@ -2374,6 +2633,7 @@
       $("screenTitle").textContent = "Panel de aprendizaje";
       $("screenSubtitle").textContent = `${activeProfile} | ${activeRole} | NIIF completas, Costa Rica`;
       const quizCorrect = units.reduce((sum, u) => sum + correctCount(u), 0);
+      const quizTotalPreguntas = units.reduce((sum, u) => sum + quizTotal(u, p), 0);
       const completeUnits = units.filter(u => p.complete[u.id]).length;
       const fullUnits = units.filter(u => unitProgress(u) === 100).length;
       const rate = completionRate();
@@ -2388,7 +2648,7 @@
             <p>Contabilidad avanzada aplicada a la expansion empresarial, con enfoque NIIF completas para Costa Rica.</p>
             <div class="hero-chips">
               <span>${fullUnits}/4 unidades completas</span>
-              <span>${quizCorrect}/8 respuestas correctas</span>
+              <span>${quizCorrect}/${quizTotalPreguntas} respuestas correctas</span>
               <span>Casos resueltos con NIIF 18</span>
               <span>Rol: ${escapeHtml(activeRole)}</span>
             </div>
@@ -2399,7 +2659,7 @@
         <div class="stat-grid">
           <div class="stat"><strong>${rate}%</strong><span>avance general</span></div>
           <div class="stat"><strong>${completeUnits}/4</strong><span>unidades marcadas</span></div>
-          <div class="stat"><strong>${quizCorrect}/8</strong><span>respuestas correctas</span></div>
+          <div class="stat"><strong>${quizCorrect}/${quizTotalPreguntas}</strong><span>respuestas correctas</span></div>
           <div class="stat"><strong>${activeRole}</strong><span>rol activo</span></div>
         </div>
         <div class="panel">
@@ -2675,6 +2935,15 @@
         body.innerHTML = quizHtml(unit);
         document.querySelectorAll("[data-q]").forEach(btn => {
           btn.addEventListener("click", () => answerQuestion(unit, Number(btn.dataset.q), Number(btn.dataset.option)));
+        });
+        document.querySelectorAll("[data-quiz-new]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            newQuizSession(unit, profile());
+            writeStore();
+            renderUnit();
+            refreshUnitProgress();
+            toast("Nueva ronda de preguntas");
+          });
         });
       }
       if (activeTab === "notas") {
@@ -3014,34 +3283,277 @@
       sheet.remove();
     }
 
+    // ===== Autoevaluacion por rondas =====
+    // De cada banco de preguntas se toma una ronda al azar y se barajan las
+    // opciones, de modo que repetir el intento no sea memorizar posiciones.
+
     function quizHtml(unit) {
       const p = profile();
-      const answers = p.quiz[unit.id] || [];
+      const s = quizSession(unit, p);
+      const total = s.orden.length;
+      const respondidas = answeredCount(unit, p);
+      const correctas = correctCount(unit, p);
+      const terminada = respondidas === total && total > 0;
+      const intentos = (p.quizAttempts || {})[unit.id] || [];
       return `
+        <div class="quiz-meta">
+          <div>
+            <strong>Ronda de ${total} preguntas</strong>
+            <span class="footer-note" style="margin:0"> tomadas al azar del banco de ${unit.questions.length}.</span>
+            <div style="margin-top:6px"><span class="badge ${terminada ? (correctas === total ? "" : "amber") : "blue"}">${respondidas}/${total} respondidas &middot; ${correctas} correctas</span></div>
+          </div>
+          <div class="quiz-actions">
+            <button data-quiz-new class="${terminada ? "primary" : ""}">${terminada ? "Nuevo intento" : "Cambiar preguntas"}</button>
+          </div>
+        </div>
         <div class="flow">
-          ${unit.questions.map((q, qIndex) => `
+          ${s.orden.map(qIndex => {
+            const q = unit.questions[qIndex];
+            const perm = (s.opciones && s.opciones[qIndex]) || q.options.map((_, k) => k);
+            const elegida = s.respuestas[qIndex];
+            const answered = elegida !== undefined;
+            return `
             <div>
               <strong>${q.q}</strong>
               <div class="quiz-options">
-                ${q.options.map((option, optionIndex) => {
-                  const answered = answers[qIndex] !== undefined;
-                  const cls = answered && optionIndex === q.answer ? "correct" : answered && optionIndex === answers[qIndex] ? "incorrect" : "";
-                  return `<button class="${cls}" data-q="${qIndex}" data-option="${optionIndex}">${option}</button>`;
+                ${perm.map(optionIndex => {
+                  const cls = answered && optionIndex === q.answer ? "correct" : answered && optionIndex === elegida ? "incorrect" : "";
+                  return `<button class="${cls}" data-q="${qIndex}" data-option="${optionIndex}"${answered ? " disabled" : ""}>${q.options[optionIndex]}</button>`;
                 }).join("")}
               </div>
-              ${answers[qIndex] !== undefined ? `<p class="info">${q.feedback}</p>` : ""}
+              ${answered ? `<p class="${elegida === q.answer ? "info" : "warning"}">${elegida === q.answer ? "Correcto. " : "Respuesta incorrecta. "}${q.feedback}</p>` : ""}
             </div>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
+        ${terminada ? `<div class="result-box" role="status"><strong>Resultado de la ronda:</strong> ${correctas} de ${total} correctas (${pct(total ? correctas / total * 100 : 0)}). ${correctas === total ? "Dominio demostrado en esta ronda." : "Repase la retroalimentacion y pulse Nuevo intento para practicar con otras preguntas."}</div>` : ""}
+        ${intentos.length ? `
+          <h4 style="margin:16px 0 4px">Historial de intentos</h4>
+          <ol class="attempt-list">
+            ${intentos.slice().reverse().map(a => `<li>${escapeHtml(a.fecha)}: ${a.correctas}/${a.total} correctas (${pct(a.total ? a.correctas / a.total * 100 : 0)})</li>`).join("")}
+          </ol>
+        ` : ""}
       `;
     }
 
     function answerQuestion(unit, qIndex, optionIndex) {
       const p = profile();
-      if (!p.quiz[unit.id]) p.quiz[unit.id] = [];
-      p.quiz[unit.id][qIndex] = optionIndex;
+      const s = quizSession(unit, p);
+      if (s.respuestas[qIndex] !== undefined) return;
+      s.respuestas[qIndex] = optionIndex;
+      // Al completar la ronda se archiva el intento para el historial y el reporte.
+      if (answeredCount(unit, p) === s.orden.length) {
+        if (!p.quizAttempts) p.quizAttempts = {};
+        if (!p.quizAttempts[unit.id]) p.quizAttempts[unit.id] = [];
+        p.quizAttempts[unit.id].push({
+          fecha: new Date().toLocaleString("es-CR"),
+          correctas: correctCount(unit, p),
+          total: s.orden.length
+        });
+      }
       writeStore();
       renderUnit();
+    }
+
+    // ===== Examen integrador =====
+    // A diferencia de la autoevaluacion (formativa, con retroalimentacion
+    // inmediata), el examen es sumativo: toma preguntas de las cuatro unidades,
+    // tiene tiempo limite y no muestra la respuesta correcta hasta finalizar.
+    const EXAM_POR_UNIDAD = 3;
+    const EXAM_MINUTOS = 20;
+    const EXAM_APROBACION = 70;
+    let examTimer = null;
+
+    function examBuild() {
+      const preguntas = [];
+      units.forEach((u, ui) => {
+        shuffle(u.questions.map((_, i) => i)).slice(0, EXAM_POR_UNIDAD).forEach(qi => {
+          preguntas.push({ u: ui, q: qi, perm: shuffle(u.questions[qi].options.map((_, k) => k)) });
+        });
+      });
+      return shuffle(preguntas);
+    }
+
+    function examStart() {
+      const p = profile();
+      p.examEnCurso = { preguntas: examBuild(), respuestas: {}, inicio: Date.now(), minutos: EXAM_MINUTOS };
+      writeStore();
+      renderExam();
+    }
+
+    // Segundos restantes segun la hora de inicio guardada: recargar la pagina
+    // no reinicia el reloj.
+    function examRemaining(e) {
+      if (!e) return 0;
+      const transcurrido = Math.floor((Date.now() - e.inicio) / 1000);
+      return Math.max(0, e.minutos * 60 - transcurrido);
+    }
+
+    function examGrade(e) {
+      let correctas = 0;
+      e.preguntas.forEach((item, i) => {
+        const q = units[item.u].questions[item.q];
+        if (e.respuestas[i] === q.answer) correctas++;
+      });
+      const total = e.preguntas.length;
+      return { correctas, total, nota: total ? Math.round(correctas / total * 100) : 0 };
+    }
+
+    function examStop() {
+      if (examTimer) { clearInterval(examTimer); examTimer = null; }
+    }
+
+    function examFinish(motivo) {
+      const p = profile();
+      const e = p.examEnCurso;
+      if (!e) return;
+      const r = examGrade(e);
+      p.exam = {
+        fecha: new Date().toLocaleString("es-CR"),
+        correctas: r.correctas,
+        total: r.total,
+        nota: r.nota,
+        aprobado: r.nota >= EXAM_APROBACION,
+        motivo: motivo || "entregado",
+        detalle: e.preguntas.map((item, i) => ({ u: item.u, q: item.q, elegida: e.respuestas[i] }))
+      };
+      delete p.examEnCurso;
+      examStop();
+      writeStore();
+      renderExam();
+      toast(`Examen finalizado: ${r.correctas}/${r.total} (${r.nota}%)`);
+    }
+
+    function answerExam(i, optionIndex) {
+      const p = profile();
+      const e = p.examEnCurso;
+      if (!e) return;
+      e.respuestas[i] = optionIndex;
+      writeStore();
+      renderExam();
+    }
+
+    function mmss(seg) {
+      const m = Math.floor(seg / 60);
+      const s = seg % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function renderExam() {
+      const p = profile();
+      $("screenTitle").textContent = "Examen integrador";
+      $("screenSubtitle").textContent = `Evaluacion sumativa de las cuatro unidades. ${EXAM_POR_UNIDAD * units.length} preguntas en ${EXAM_MINUTOS} minutos.`;
+      const e = p.examEnCurso;
+      examStop();
+
+      if (e && examRemaining(e) <= 0) { examFinish("tiempo agotado"); return; }
+
+      if (e) {
+        const respondidas = Object.keys(e.respuestas).length;
+        $("examScreen").innerHTML = `
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Examen en curso</h3>
+              <span class="badge rose" id="examClock" role="timer" aria-live="off">${mmss(examRemaining(e))}</span>
+            </div>
+            <div class="panel-body">
+              <p class="warning">No se muestra la respuesta correcta hasta finalizar. Puede cambiar sus respuestas mientras quede tiempo. Al agotarse el tiempo, el examen se entrega automaticamente.</p>
+              <div class="progress"><span style="width:${Math.round(respondidas / e.preguntas.length * 100)}%"></span></div>
+              <p class="footer-note">${respondidas} de ${e.preguntas.length} preguntas respondidas.</p>
+              <div class="flow">
+                ${e.preguntas.map((item, i) => {
+                  const q = units[item.u].questions[item.q];
+                  return `
+                    <div>
+                      <span class="badge ${units[item.u].color}">${units[item.u].short}</span>
+                      <strong style="display:block;margin-top:6px">${q.q}</strong>
+                      <div class="quiz-options">
+                        ${item.perm.map(oi => `<button class="${e.respuestas[i] === oi ? "active-answer" : ""}" style="${e.respuestas[i] === oi ? "border-color:var(--blue);font-weight:700" : ""}" data-exam="${i}" data-option="${oi}">${q.options[oi]}</button>`).join("")}
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+              <div class="panel-actions">
+                <button class="primary" id="examFinish">Finalizar y calificar</button>
+                <button id="examCancel" class="ghost">Anular examen</button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.querySelectorAll("[data-exam]").forEach(btn => {
+          btn.addEventListener("click", () => answerExam(Number(btn.dataset.exam), Number(btn.dataset.option)));
+        });
+        $("examFinish").addEventListener("click", () => {
+          if (Object.keys(e.respuestas).length < e.preguntas.length &&
+              !confirm("Quedan preguntas sin responder. Desea finalizar de todos modos?")) return;
+          examFinish("entregado");
+        });
+        $("examCancel").addEventListener("click", () => {
+          if (!confirm("Anular el examen en curso? No se guardara ninguna calificacion.")) return;
+          delete profile().examEnCurso;
+          examStop();
+          writeStore();
+          renderExam();
+        });
+        // Reloj: solo mientras el examen esta abierto en pantalla.
+        if (typeof setInterval === "function") {
+          examTimer = setInterval(() => {
+            const actual = profile().examEnCurso;
+            if (!actual) { examStop(); return; }
+            const queda = examRemaining(actual);
+            const reloj = $("examClock");
+            if (reloj) reloj.textContent = mmss(queda);
+            if (queda <= 0) examFinish("tiempo agotado");
+          }, 1000);
+        }
+        return;
+      }
+
+      const r = p.exam;
+      $("examScreen").innerHTML = `
+        <div class="panel">
+          <div class="panel-head">
+            <h3>${r ? "Resultado del ultimo examen" : "Antes de empezar"}</h3>
+            ${r ? `<span class="badge ${r.aprobado ? "" : "rose"}">${r.nota}% &middot; ${r.aprobado ? "Aprobado" : "No aprobado"}</span>` : `<span class="badge blue">${EXAM_MINUTOS} minutos</span>`}
+          </div>
+          <div class="panel-body">
+            ${r ? `
+              <p class="info"><strong>${escapeHtml(r.fecha)}.</strong> ${r.correctas} de ${r.total} respuestas correctas (${r.nota}%). Nota minima de aprobacion: ${EXAM_APROBACION}%. Entrega: ${escapeHtml(r.motivo)}.</p>
+              <h4 style="margin:16px 0 6px">Revision de respuestas</h4>
+              <div class="flow">
+                ${(r.detalle || []).map(d => {
+                  const q = units[d.u].questions[d.q];
+                  const ok = d.elegida === q.answer;
+                  return `
+                    <div>
+                      <span class="badge ${ok ? "" : "rose"}">${ok ? "Correcta" : "Incorrecta"}</span>
+                      <strong style="display:block;margin-top:6px">${q.q}</strong>
+                      <p class="footer-note" style="margin:6px 0 0">Su respuesta: ${d.elegida === undefined ? "(sin responder)" : q.options[d.elegida]}</p>
+                      <p class="footer-note" style="margin:2px 0 0">Respuesta correcta: <strong>${q.options[q.answer]}</strong></p>
+                      <p class="${ok ? "info" : "warning"}" style="margin-top:8px">${q.feedback}</p>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            ` : `
+              <p class="info">El examen integrador toma ${EXAM_POR_UNIDAD} preguntas al azar de cada unidad y las presenta en orden aleatorio. Dispone de ${EXAM_MINUTOS} minutos. Puede repetirlo cuantas veces quiera; se conserva el ultimo resultado.</p>
+              <p class="warning">Es una evaluacion de practica. La calificacion se guarda en este navegador y no sustituye la evaluacion oficial del curso.</p>
+            `}
+            <div class="panel-actions">
+              <button class="primary" id="examBegin">${r ? "Repetir examen" : "Iniciar examen"}</button>
+              ${r ? `<button id="examClear" class="ghost">Borrar resultado</button>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+      $("examBegin").addEventListener("click", examStart);
+      const clear = $("examClear");
+      if (clear) clear.addEventListener("click", () => {
+        profile().exam = null;
+        writeStore();
+        renderExam();
+      });
     }
 
     function renderReport() {
@@ -3062,7 +3574,8 @@
                 <tbody>
                   ${units.map(unit => {
                     const correct = correctCount(unit);
-                    return `<tr><td>${unit.title}</td><td>${p.complete[unit.id] ? "Revisada" : "Pendiente"}</td><td>${correct}/${unit.questions.length}</td><td>${p.notes[unit.id] ? "Registradas" : "Sin notas"}</td></tr>`;
+                    const intentos = ((p.quizAttempts || {})[unit.id] || []).length;
+                    return `<tr><td>${unit.title}</td><td>${p.complete[unit.id] ? "Revisada" : "Pendiente"}</td><td>${correct}/${quizTotal(unit, p)}${intentos ? ` (${intentos} intento${intentos > 1 ? "s" : ""})` : ""}</td><td>${p.notes[unit.id] ? "Registradas" : "Sin notas"}</td></tr>`;
                   }).join("")}
                 </tbody>
               </table>
@@ -3184,12 +3697,12 @@
             <p class="info">Comparativa de los perfiles guardados en este navegador. Para consolidar el avance de varios estudiantes en diferentes computadoras se requiere una version con backend y base de datos comun.</p>
             <div class="table-wrap">
               <table class="journal">
-                <thead><tr><th>Perfil</th><th>Rol</th><th>Avance</th><th>Unidades revisadas</th><th>Correctas</th><th>Unidades con notas</th><th>Accion</th></tr></thead>
+                <thead><tr><th>Perfil</th><th>Rol</th><th>Avance</th><th>Unidades revisadas</th><th>Correctas</th><th>Examen</th><th>Unidades con notas</th><th>Accion</th></tr></thead>
                 <tbody>
                   ${names.map(name => {
                     const stats = profileStats(store.profiles[name]);
                     const role = store.profiles[name].role || "estudiante";
-                    return `<tr><td>${escapeHtml(name)}${name === activeProfile ? " (activo)" : ""}</td><td>${escapeHtml(role)}</td><td>${stats.rate}%</td><td>${stats.reviewed}/4</td><td>${stats.correct}/8</td><td>${stats.notes}/4</td><td class="row-actions"><button class="rename-profile" data-rename="${escapeHtml(name)}">Renombrar</button> <button class="reset-profile" data-reset="${escapeHtml(name)}">Reiniciar</button> <button class="del-profile" data-del="${escapeHtml(name)}">Eliminar</button></td></tr>`;
+                    return `<tr><td>${escapeHtml(name)}${name === activeProfile ? " (activo)" : ""}</td><td>${escapeHtml(role)}</td><td>${stats.rate}%</td><td>${stats.reviewed}/4</td><td>${stats.correct}/${stats.preguntas}</td><td>${stats.examen ? `${stats.examen.correctas}/${stats.examen.total}` : "-"}</td><td>${stats.notes}/4</td><td class="row-actions"><button class="rename-profile" data-rename="${escapeHtml(name)}">Renombrar</button> <button class="reset-profile" data-reset="${escapeHtml(name)}">Reiniciar</button> <button class="del-profile" data-del="${escapeHtml(name)}">Eliminar</button></td></tr>`;
                   }).join("")}
                 </tbody>
               </table>
@@ -3219,7 +3732,7 @@
           pr.role || "estudiante",
           stats.rate,
           `${stats.reviewed}/4`,
-          `${stats.correct}/8`,
+          `${stats.correct}/${stats.preguntas}`,
           `${stats.notes}/4`,
           (pr.rubricNotes || "").replace(/\r?\n/g, " ")
         ].map(csvCell).join(","));
@@ -3581,6 +4094,7 @@
       if (activeScreen === "unit") renderUnit();
       if (activeScreen === "glossary") renderGlossary();
       if (activeScreen === "casos") renderCasos();
+      if (activeScreen === "exam") renderExam();
       if (activeScreen === "report") renderReport();
       if (activeScreen === "bibliography") renderBibliography();
       if (activeScreen === "manual") renderManual();
@@ -3644,6 +4158,7 @@
     $("goDashboard").addEventListener("click", () => setScreen("dashboard"));
     $("goGlossary").addEventListener("click", () => setScreen("glossary"));
     $("goCasos").addEventListener("click", () => setScreen("casos"));
+    $("goExam").addEventListener("click", () => setScreen("exam"));
     $("goReport").addEventListener("click", () => setScreen("report"));
     $("goBibliography").addEventListener("click", () => setScreen("bibliography"));
     $("goManual").addEventListener("click", () => setScreen("manual"));
