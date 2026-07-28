@@ -1262,6 +1262,7 @@
         id: "u2",
         color: "amber",
         short: "Agencias",
+        worksheet: true,
         title: "Unidad 2: Agencias y Sucursales",
         subtitle: "Casa central, agencias, sucursales, cuentas reciprocas y estados combinados.",
         norm: "Agencias y sucursales no son entidades juridicas separadas, sino parte de la misma entidad; por eso no hay consolidacion ni aplica NIIF 10. Sus operaciones y resultados forman parte de los estados financieros de proposito general de la entidad, preparados conforme a NIC 1. La contabilidad de sucursales (cuentas reciprocas, mercaderia facturada a costo o con sobreprecio, hoja de trabajo combinada) es una tecnica de registro interno sustentada en la literatura de contabilidad avanzada; los estados combinados internos no sustituyen los estados de proposito general. Si la sucursal opera en moneda extranjera, su conversion sigue NIC 21 (Efectos de las variaciones en las tasas de cambio).",
@@ -1377,6 +1378,7 @@
         id: "u3",
         color: "blue",
         short: "Subsidiarias",
+        worksheet: true,
         title: "Unidad 3: Inversion en Subsidiarias",
         subtitle: "Control, estados separados, metodo del costo, participacion y consolidacion.",
         norm: "NIIF 10 establece el control como unica base de consolidacion: no basta el porcentaje juridico. NIC 27 regula los estados financieros separados, en los que la inversion se mide al costo, conforme a NIIF 9 o por el metodo de participacion. Cuando la adquisicion de la subsidiaria es una combinacion de negocios, se aplica NIIF 3 (metodo de la adquisicion): se identifica al adquirente y la fecha de adquisicion, se miden a valor razonable los activos y pasivos identificables, y la diferencia con la contraprestacion mas el interes no controlador origina plusvalia o, si es negativa, una ganancia por compra en condiciones muy ventajosas. La consolidacion exige politicas contables uniformes y la misma fecha de cierre.",
@@ -2284,6 +2286,7 @@
         if (!p.activity) p.activity = {};
         if (!p.rubric) p.rubric = {};
         if (!p.quizAttempts) p.quizAttempts = {};
+        if (!p.worksheet) p.worksheet = {};
         if (!p.exam) p.exam = null;
         if (!p.role) p.role = "estudiante";
         // v1 guardaba las respuestas como arreglo indexado por pregunta.
@@ -2331,6 +2334,7 @@
           activity: {},
           rubric: {},
           quizAttempts: {},
+          worksheet: {},
           exam: null,
           updatedAt: new Date().toISOString()
         };
@@ -2343,6 +2347,7 @@
       if (!current.complete) current.complete = {};
       if (!current.rubric) current.rubric = {};
       if (!current.quizAttempts) current.quizAttempts = {};
+      if (!current.worksheet) current.worksheet = {};
       if (current.exam === undefined) current.exam = null;
       store.activeProfile = activeProfile;
       store.role = activeRole;
@@ -2931,6 +2936,22 @@
         unit.simulator.fields.forEach(([key]) => $(key).addEventListener("input", () => calculateSimulator(unit)));
         calculateSimulator(unit);
       }
+      if (activeTab === "papel") {
+        body.innerHTML = worksheetHtml(unit);
+        $("wsCalc").addEventListener("click", () => {
+          calculateWorksheet(unit);
+          toast("Papel de trabajo actualizado");
+        });
+        $("wsReset").addEventListener("click", () => {
+          const p = profile();
+          if (p.worksheet) delete p.worksheet[unit.id];
+          writeStore();
+          renderUnit();
+          toast("Datos del caso restaurados");
+        });
+        $("wsPrint").addEventListener("click", () => printWorksheet(unit));
+        calculateWorksheet(unit);
+      }
       if (activeTab === "autoevaluacion") {
         body.innerHTML = quizHtml(unit);
         document.querySelectorAll("[data-q]").forEach(btn => {
@@ -3251,6 +3272,423 @@
       lastSimResult[unit.id] = combined;
       $("simResult").innerHTML = combined;
       if (markActivity(unit.id, "simulator")) refreshUnitProgress();
+    }
+
+    // ================= Papel de trabajo =================
+    // Hoja de trabajo de cinco columnas (entidad A | entidad B | eliminaciones
+    // debito | credito | resultado). El cuadre no se fuerza: si los datos no son
+    // consistentes, el papel lo delata, que es justamente el objetivo didactico.
+
+    const WORKSHEETS = {
+      u2: {
+        titulo: "Estado combinado: casa central y sucursal",
+        intro: "Combine los libros de la casa central y de la sucursal. Primero concilie las partidas en transito; despues elimine la cuenta reciproca y la utilidad interna (carga) contenida en el inventario final.",
+        colA: "Casa central",
+        colB: "Sucursal",
+        colFinal: "Combinado",
+        grupos: [
+          ["Casa central", [
+            ["ccActivos", "Otros activos", 180000],
+            ["ccInventario", "Inventario", 60000],
+            ["ccCuentaSucursal", "Cuenta Sucursal (activo)", 95000],
+            ["ccPasivos", "Pasivos", 85000],
+            ["ccCapital", "Capital social", 200000],
+            ["ccUtilidades", "Utilidades acumuladas", 50000]
+          ]],
+          ["Sucursal", [
+            ["suActivos", "Otros activos", 40000],
+            ["suInventario", "Inventario", 70000],
+            ["suPasivos", "Pasivos", 15000],
+            ["suCuentaCC", "Cuenta Casa central (patrimonio de la sucursal)", 75000],
+            ["suUtilidades", "Utilidades acumuladas", 20000]
+          ]],
+          ["Conciliacion y ajustes", [
+            ["transito", "Mercaderia en transito (enviada y no recibida)", 20000],
+            ["carga", "Utilidad interna (carga) en el inventario final", 9000]
+          ]]
+        ]
+      },
+      u3: {
+        titulo: "Papel de trabajo de consolidacion",
+        intro: "Consolide matriz y subsidiaria: determine la plusvalia y el interes no controlador, elimine la inversion contra el patrimonio adquirido y depure las operaciones intragrupo.",
+        colA: "Matriz",
+        colB: "Subsidiaria",
+        colFinal: "Consolidado",
+        grupos: [
+          ["Datos de la adquisicion", [
+            ["pctAdq", "Participacion adquirida", 80, "pct"],
+            ["contraprestacion", "Contraprestacion transferida", 176000],
+            ["patAdq", "Patrimonio contable de la subsidiaria en la fecha de adquisicion", 180000],
+            ["ajusteVR", "Ajuste a valor razonable de los activos netos identificables", 20000],
+            ["vrPNC", "Valor razonable del interes no controlador (solo si se mide a valor razonable)", 44000]
+          ]],
+          ["Saldos de la matriz", [
+            ["mActivos", "Otros activos", 500000],
+            ["mInventario", "Inventario", 120000],
+            ["mPasivos", "Pasivos", 296000],
+            ["mCapital", "Capital social", 400000],
+            ["mUtilidades", "Utilidades acumuladas", 100000]
+          ]],
+          ["Saldos de la subsidiaria", [
+            ["sActivos", "Otros activos", 260000],
+            ["sInventario", "Inventario", 40000],
+            ["sPasivos", "Pasivos", 90000],
+            ["sCapital", "Capital social", 150000],
+            ["sUtilidades", "Utilidades acumuladas", 60000]
+          ]],
+          ["Ajustes intragrupo", [
+            ["reciproco", "Saldos por cobrar y pagar entre matriz y subsidiaria", 25000],
+            ["utilNoRealizada", "Utilidad no realizada en el inventario final", 8000]
+          ]]
+        ]
+      }
+    };
+
+    function worksheetFields(unit) {
+      const def = WORKSHEETS[unit.id];
+      return def ? def.grupos.reduce((acc, g) => acc.concat(g[1]), []) : [];
+    }
+
+    function worksheetData(unit) {
+      const p = profile();
+      if (!p.worksheet) p.worksheet = {};
+      if (!p.worksheet[unit.id]) {
+        p.worksheet[unit.id] = {};
+        worksheetFields(unit).forEach(([key, , valor]) => { p.worksheet[unit.id][key] = valor; });
+        if (unit.id === "u3") p.worksheet[unit.id].metodoPNC = "proporcional";
+      }
+      return p.worksheet[unit.id];
+    }
+
+    function worksheetHtml(unit) {
+      const def = WORKSHEETS[unit.id];
+      const d = worksheetData(unit);
+      return `
+        <p class="info"><strong>${def.titulo}.</strong> ${def.intro}</p>
+        ${def.grupos.map(([titulo, campos]) => `
+          <h4 style="margin:14px 0 6px">${titulo}</h4>
+          ${unit.id === "u3" && titulo === "Datos de la adquisicion" ? `
+            <label style="display:block;margin-bottom:10px">
+              <span class="small-label" style="color:var(--muted)">Medicion del interes no controlador (NIIF 3)</span>
+              <select id="ws-metodoPNC">
+                <option value="proporcional"${d.metodoPNC === "proporcional" ? " selected" : ""}>Proporcion en los activos netos identificables</option>
+                <option value="razonable"${d.metodoPNC === "razonable" ? " selected" : ""}>Valor razonable (plusvalia completa)</option>
+              </select>
+            </label>
+          ` : ""}
+          <div class="form-grid">
+            ${campos.map(([key, label, , tipo]) => `
+              <label id="wswrap-${key}">
+                <span class="small-label" style="color:var(--muted)">${label}${tipo === "pct" ? " (%)" : ""}</span>
+                <input id="ws-${key}" type="number" min="0" ${tipo === "pct" ? `max="100"` : ""} step="0.01" inputmode="decimal"
+                       value="${d[key] === undefined ? "" : d[key]}" aria-describedby="wsmsg-${key}">
+                <span class="field-msg" id="wsmsg-${key}"></span>
+              </label>
+            `).join("")}
+          </div>
+        `).join("")}
+        <div class="panel-actions">
+          <button class="primary" id="wsCalc">Armar el papel de trabajo</button>
+          <button id="wsReset" class="ghost">Restaurar datos del caso</button>
+          <button id="wsPrint" class="ghost">Imprimir papel de trabajo (PDF)</button>
+        </div>
+        <div class="result-box" id="wsResult" role="status" aria-live="polite" style="margin-top:14px">Digite o revise los datos y pulse <strong>Armar el papel de trabajo</strong>.</div>
+      `;
+    }
+
+    // Lee los datos digitados, los valida y los guarda en el perfil.
+    function worksheetRead(unit) {
+      const d = worksheetData(unit);
+      const errores = [];
+      worksheetFields(unit).forEach(([key, label, , tipo]) => {
+        const input = $("ws-" + key);
+        const raw = String(input && input.value !== undefined ? input.value : "").trim();
+        let msg = "";
+        const n = Number(raw);
+        if (raw === "") msg = "Dato requerido.";
+        else if (!isFinite(n)) msg = "Digite un numero valido.";
+        else if (n < 0) msg = "No se admiten valores negativos.";
+        else if (tipo === "pct" && n > 100) msg = "El porcentaje no puede superar 100.";
+        if (!msg) d[key] = n;
+        const msgEl = $("wsmsg-" + key);
+        if (msgEl) msgEl.textContent = msg;
+        const wrap = $("wswrap-" + key);
+        if (wrap && wrap.classList) wrap.classList.toggle("field-error", !!msg);
+        if (msg) errores.push(`${label}: ${msg}`);
+      });
+      const sel = $("ws-metodoPNC");
+      if (sel && sel.value) d.metodoPNC = sel.value;
+      writeStore();
+      return { d, errores };
+    }
+
+    function wsRow(concepto, a, b, deb, cred, final, opciones = {}) {
+      const cel = (v) => v === "" || v === null || v === undefined ? "" : money(v);
+      return `<tr${opciones.total ? ` class="ws-total"` : ""}>
+        <td>${concepto}</td>
+        <td class="num">${cel(a)}</td>
+        <td class="num">${cel(b)}</td>
+        <td class="num">${cel(deb)}</td>
+        <td class="num">${cel(cred)}</td>
+        <td class="num">${cel(final)}</td>
+      </tr>`;
+    }
+
+    function wsTable(def, filas) {
+      return `
+        <div class="table-wrap">
+          <table class="journal" style="min-width:720px">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th class="num">${def.colA}</th>
+                <th class="num">${def.colB}</th>
+                <th class="num">Elim. debito</th>
+                <th class="num">Elim. credito</th>
+                <th class="num">${def.colFinal}</th>
+              </tr>
+            </thead>
+            <tbody>${filas}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function balanceCheck(etiqueta, activos, pasivoPatrimonio) {
+      const ok = Math.abs(activos - pasivoPatrimonio) < 0.005;
+      const dif = activos - pasivoPatrimonio;
+      return `<div class="ws-check ${ok ? "ok" : "bad"}">${ok ? "&#10003;" : "&#9888;"} ${etiqueta}: activos ${money(activos)} ${ok ? "=" : "vs."} pasivo + patrimonio ${money(pasivoPatrimonio)}${ok ? "" : ` &middot; diferencia ${money(dif)}`}</div>`;
+    }
+
+    // Redondeo monetario a dos decimales: evita residuos de coma flotante en
+    // importes que deben cuadrar exactamente.
+    const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+    // Aritmetica de la consolidacion, separada del render para poder verificarla.
+    function worksheetU3Calc(d) {
+      const pctAdq = d.pctAdq / 100;
+      const pctPNC = (100 - d.pctAdq) / 100;
+      const ani = d.patAdq + d.ajusteVR;                   // activos netos identificables a valor razonable
+      const pncInicial = round2(d.metodoPNC === "razonable" ? d.vrPNC : ani * pctPNC);
+      const plusvalia = round2(d.contraprestacion + pncInicial - ani);
+      const patActual = d.sCapital + d.sUtilidades;
+      const post = patActual - d.patAdq;                    // resultados posteriores a la adquisicion
+      const pncFinal = round2(pncInicial + pctPNC * post);
+      const parteMatrizPost = round2(post - (pncFinal - pncInicial));
+
+      const invMatriz = d.contraprestacion;                 // medida al costo en estados separados
+      const activosMatriz = d.mActivos + d.mInventario + invMatriz;
+      const ppMatriz = d.mPasivos + d.mCapital + d.mUtilidades;
+      const activosSub = d.sActivos + d.sInventario;
+      const ppSub = d.sPasivos + patActual;
+
+      const cOtros = d.mActivos + d.sActivos - d.reciproco;
+      const cInventario = d.mInventario + d.sInventario - d.utilNoRealizada;
+      const cPasivos = d.mPasivos + d.sPasivos - d.reciproco;
+      const cUtilidades = d.mUtilidades + parteMatrizPost - d.utilNoRealizada;
+      const cActivos = cOtros + cInventario + d.ajusteVR + plusvalia;
+      const cPP = cPasivos + d.mCapital + cUtilidades + pncFinal;
+
+      return {
+        pctAdq, ani, pncInicial, plusvalia, patActual, post, pncFinal, parteMatrizPost,
+        invMatriz, activosMatriz, ppMatriz, activosSub, ppSub,
+        cOtros, cInventario, cPasivos, cUtilidades, cActivos, cPP,
+        cuadraMatriz: Math.abs(activosMatriz - ppMatriz) < 0.005,
+        cuadraSub: Math.abs(activosSub - ppSub) < 0.005,
+        cuadraConsolidado: Math.abs(cActivos - cPP) < 0.005
+      };
+    }
+
+    function worksheetU3(d, def) {
+      const {
+        ani, pncInicial, plusvalia, patActual, post, pncFinal, parteMatrizPost,
+        invMatriz, activosMatriz, ppMatriz, activosSub, ppSub,
+        cOtros, cInventario, cPasivos, cUtilidades, cActivos, cPP
+      } = worksheetU3Calc(d);
+
+      const filas = [
+        wsRow("Otros activos", d.mActivos, d.sActivos, "", d.reciproco, cOtros),
+        wsRow("Inventario", d.mInventario, d.sInventario, "", d.utilNoRealizada, cInventario),
+        wsRow("Inversion en subsidiaria (al costo)", invMatriz, "", "", invMatriz, 0),
+        wsRow("Ajuste a valor razonable de activos identificables", "", "", d.ajusteVR, "", d.ajusteVR),
+        wsRow("Plusvalia", "", "", plusvalia, "", plusvalia),
+        wsRow("Total de activos", activosMatriz, activosSub, "", "", cActivos, { total: true }),
+        wsRow("Pasivos", d.mPasivos, d.sPasivos, d.reciproco, "", cPasivos),
+        wsRow("Capital social", d.mCapital, d.sCapital, d.sCapital, "", d.mCapital),
+        wsRow("Utilidades acumuladas", d.mUtilidades, d.sUtilidades, d.sUtilidades + d.utilNoRealizada, parteMatrizPost, cUtilidades),
+        wsRow("Interes no controlador", "", "", "", pncFinal, pncFinal),
+        wsRow("Total de pasivo y patrimonio", ppMatriz, ppSub, "", "", cPP, { total: true })
+      ].join("");
+
+      const asiento = [
+        ["Capital social - subsidiaria", d.sCapital, "", "Eliminacion del patrimonio adquirido"],
+        ["Utilidades acumuladas - subsidiaria", d.sUtilidades, "", "Eliminacion del patrimonio adquirido"],
+        ["Activos identificables (ajuste a valor razonable)", d.ajusteVR, "", "NIIF 3: medicion a valor razonable"],
+        ["Plusvalia", plusvalia, "", "Diferencia no asignada a activos identificables"],
+        ["Inversion en subsidiaria", "", invMatriz, "Eliminacion de la inversion"],
+        ["Interes no controlador", "", pncFinal, "Participacion no atribuible a la controladora"],
+        ["Utilidades acumuladas consolidadas", "", parteMatrizPost, "Parte de la matriz en resultados posteriores"]
+      ];
+      const asiento2 = [
+        ["Cuentas por pagar intragrupo", d.reciproco, "", "Eliminacion de saldos reciprocos"],
+        ["Cuentas por cobrar intragrupo", "", d.reciproco, "Eliminacion de saldos reciprocos"],
+        ["Utilidades acumuladas", d.utilNoRealizada, "", "Utilidad no realizada en inventario"],
+        ["Inventario", "", d.utilNoRealizada, "El grupo no puede ganar consigo mismo"]
+      ];
+
+      return `
+        <h4 style="margin:0 0 6px">1. Determinacion de la plusvalia y del interes no controlador</h4>
+        <div class="table-wrap">
+          <table class="journal">
+            <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Contraprestacion transferida</td><td class="num">${money(d.contraprestacion)}</td></tr>
+              <tr><td>Interes no controlador en la fecha de adquisicion (${d.metodoPNC === "razonable" ? "valor razonable" : `${pct(100 - d.pctAdq)} de los activos netos identificables`})</td><td class="num">${money(pncInicial)}</td></tr>
+              <tr><td>Activos netos identificables a valor razonable (${money(d.patAdq)} + ${money(d.ajusteVR)})</td><td class="num">(${money(ani)})</td></tr>
+              <tr class="ws-total"><td>Plusvalia</td><td class="num">${money(plusvalia)}</td></tr>
+              <tr><td>Resultados posteriores a la adquisicion (${money(patActual)} - ${money(d.patAdq)})</td><td class="num">${money(post)}</td></tr>
+              <tr><td>Parte de la matriz en resultados posteriores (${pct(d.pctAdq)})</td><td class="num">${money(parteMatrizPost)}</td></tr>
+              <tr class="ws-total"><td>Interes no controlador a la fecha de consolidacion</td><td class="num">${money(pncFinal)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        ${plusvalia < 0 ? `<p class="warning"><strong>Plusvalia negativa.</strong> NIIF 3 exige revisar la identificacion y medicion de los activos y pasivos antes de reconocer una ganancia por compra en condiciones muy ventajosas en el resultado del periodo.</p>` : ""}
+        ${d.metodoPNC === "razonable" ? `<p class="footer-note">Al medir el interes no controlador a valor razonable se reconoce tambien la plusvalia que le corresponde (plusvalia completa).</p>` : `<p class="footer-note">Al medir el interes no controlador como proporcion de los activos netos identificables, la plusvalia reconocida es solo la de la controladora.</p>`}
+
+        <h4 style="margin:18px 0 6px">2. Asientos de eliminacion</h4>
+        <p class="footer-note" style="margin:0 0 4px">a) Eliminacion de la inversion contra el patrimonio adquirido</p>
+        ${journalTable(asiento)}
+        ${journalCheck(asiento)}
+        <p class="footer-note" style="margin:12px 0 4px">b) Operaciones intragrupo</p>
+        ${journalTable(asiento2)}
+        ${journalCheck(asiento2)}
+
+        <h4 style="margin:18px 0 6px">3. Hoja de trabajo</h4>
+        ${wsTable(def, filas)}
+        ${balanceCheck("Matriz", activosMatriz, ppMatriz)}
+        ${balanceCheck("Subsidiaria", activosSub, ppSub)}
+        ${balanceCheck("Consolidado", cActivos, cPP)}
+        <p class="footer-note">La inversion se presenta medida al costo, conforme a NIC 27 para estados separados. El ajuste a valor razonable se muestra en una linea propia por claridad didactica; en la practica se asigna a los activos identificables concretos y se deprecia o amortiza segun corresponda.</p>
+      `;
+    }
+
+    // Aritmetica del estado combinado, separada del render para poder verificarla.
+    function worksheetU2Calc(d) {
+      const activosCC = d.ccActivos + d.ccInventario + d.ccCuentaSucursal;
+      const ppCC = d.ccPasivos + d.ccCapital + d.ccUtilidades;
+      const activosSU = d.suActivos + d.suInventario;
+      const ppSU = d.suPasivos + d.suCuentaCC + d.suUtilidades;
+
+      const cuentaCCAjustada = d.suCuentaCC + d.transito;
+      const difConciliacion = d.ccCuentaSucursal - cuentaCCAjustada;
+
+      const kInventario = d.ccInventario + d.suInventario + d.transito - d.carga;
+      const kOtros = d.ccActivos + d.suActivos;
+      const kPasivos = d.ccPasivos + d.suPasivos;
+      const kUtilidades = d.ccUtilidades + d.suUtilidades - d.carga;
+      const kActivos = kOtros + kInventario;
+      const kPP = kPasivos + d.ccCapital + kUtilidades;
+
+      return {
+        activosCC, ppCC, activosSU, ppSU, cuentaCCAjustada, difConciliacion,
+        kInventario, kOtros, kPasivos, kUtilidades, kActivos, kPP,
+        conciliado: Math.abs(difConciliacion) < 0.005,
+        cuadraCasaCentral: Math.abs(activosCC - ppCC) < 0.005,
+        cuadraSucursal: Math.abs(activosSU - ppSU) < 0.005,
+        cuadraCombinado: Math.abs(kActivos - kPP) < 0.005
+      };
+    }
+
+    function worksheetU2(d, def) {
+      const {
+        activosCC, ppCC, activosSU, ppSU, cuentaCCAjustada, difConciliacion,
+        kInventario, kOtros, kPasivos, kUtilidades, kActivos, kPP
+      } = worksheetU2Calc(d);
+
+      const filas = [
+        wsRow("Otros activos", d.ccActivos, d.suActivos, "", "", kOtros),
+        wsRow("Inventario (incluye mercaderia en transito)", d.ccInventario, d.suInventario, d.transito, d.carga, kInventario),
+        wsRow("Cuenta Sucursal (activo de la casa central)", d.ccCuentaSucursal, "", "", d.ccCuentaSucursal, 0),
+        wsRow("Total de activos", activosCC, activosSU, "", "", kActivos, { total: true }),
+        wsRow("Pasivos", d.ccPasivos, d.suPasivos, "", "", kPasivos),
+        wsRow("Cuenta Casa central (patrimonio de la sucursal)", "", d.suCuentaCC, cuentaCCAjustada, d.transito, 0),
+        wsRow("Capital social", d.ccCapital, "", "", "", d.ccCapital),
+        wsRow("Utilidades acumuladas", d.ccUtilidades, d.suUtilidades, d.carga, "", kUtilidades),
+        wsRow("Total de pasivo y patrimonio", ppCC, ppSU, "", "", kPP, { total: true })
+      ].join("");
+
+      const asiento = [
+        ["Inventario - Sucursal", d.transito, "", "Reconocimiento de la mercaderia en transito"],
+        ["Casa central", "", d.transito, "Conciliacion de la cuenta reciproca"],
+        ["Casa central", cuentaCCAjustada, "", "Eliminacion de la cuenta reciproca conciliada"],
+        ["Sucursal", "", d.ccCuentaSucursal, "Eliminacion de la cuenta reciproca conciliada"],
+        ["Utilidades acumuladas", d.carga, "", "Utilidad interna no realizada"],
+        ["Inventario", "", d.carga, "Sobreprecio contenido en el inventario final"]
+      ];
+
+      return `
+        <h4 style="margin:0 0 6px">1. Conciliacion de las cuentas reciprocas</h4>
+        <div class="table-wrap">
+          <table class="journal">
+            <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Cuenta Sucursal en libros de la casa central</td><td class="num">${money(d.ccCuentaSucursal)}</td></tr>
+              <tr><td>Cuenta Casa central en libros de la sucursal</td><td class="num">${money(d.suCuentaCC)}</td></tr>
+              <tr><td>Mas: mercaderia en transito registrada por la casa central y no recibida</td><td class="num">${money(d.transito)}</td></tr>
+              <tr class="ws-total"><td>Cuenta Casa central conciliada</td><td class="num">${money(cuentaCCAjustada)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ws-check ${Math.abs(difConciliacion) < 0.005 ? "ok" : "bad"}">
+          ${Math.abs(difConciliacion) < 0.005 ? "&#10003; Cuentas reciprocas conciliadas." : `&#9888; Diferencia sin explicar de ${money(difConciliacion)}. Revise las partidas en transito antes de combinar: el estado combinado no cuadrara mientras exista.`}
+        </div>
+
+        <h4 style="margin:18px 0 6px">2. Asientos de conciliacion y eliminacion</h4>
+        ${journalTable(asiento)}
+        ${journalCheck(asiento)}
+
+        <h4 style="margin:18px 0 6px">3. Hoja de trabajo</h4>
+        ${wsTable(def, filas)}
+        ${balanceCheck("Casa central", activosCC, ppCC)}
+        ${balanceCheck("Sucursal", activosSU, ppSU)}
+        ${balanceCheck("Combinado", kActivos, kPP)}
+        <p class="footer-note">No hay plusvalia ni interes no controlador: la sucursal no es una entidad separada, por lo que se combinan libros, no se consolidan entidades.</p>
+      `;
+    }
+
+    const lastWorksheet = {};
+
+    function calculateWorksheet(unit) {
+      const def = WORKSHEETS[unit.id];
+      if (!def) return;
+      const { d, errores } = worksheetRead(unit);
+      if (errores.length) {
+        $("wsResult").innerHTML = `
+          <strong>Revise los datos antes de armar el papel de trabajo:</strong>
+          <ul style="margin:8px 0 0;padding-left:20px">${errores.map(e => `<li>${escapeHtml(e)}</li>`).join("")}</ul>
+        `;
+        return;
+      }
+      const html = unit.id === "u3" ? worksheetU3(d, def) : worksheetU2(d, def);
+      lastWorksheet[unit.id] = html;
+      $("wsResult").innerHTML = html;
+    }
+
+    function printWorksheet(unit) {
+      const contenido = lastWorksheet[unit.id];
+      if (!contenido) { toast("Arme primero el papel de trabajo"); return; }
+      const sheet = document.createElement("div");
+      sheet.className = "print-sheet";
+      sheet.innerHTML = `
+        <h1>${WORKSHEETS[unit.id].titulo}</h1>
+        <p>${unit.title} &middot; ${escapeHtml(activeProfile)}</p>
+        ${contenido}
+      `;
+      document.body.appendChild(sheet);
+      document.body.classList.add("printing-unit");
+      window.print();
+      document.body.classList.remove("printing-unit");
+      sheet.remove();
     }
 
     function printUnit() {

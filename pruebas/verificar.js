@@ -82,8 +82,9 @@ const tests = `
   T('Reporte (estudiante)', () => { activeRole = 'estudiante'; activeScreen = 'report'; render(); });
   T('Reporte (docente)', () => { activeRole = 'docente'; elevated = true; activeScreen = 'report'; render(); });
   T('Reporte (administrador)', () => { activeRole = 'administrador'; activeScreen = 'report'; render(); });
+  T('Examen integrador (pantalla)', () => { activeScreen = 'exam'; render(); });
   for (let i = 0; i < units.length; i++) {
-    ['contenido','ejemplo','ejercicios','simulador','autoevaluacion','notas'].forEach(t =>
+    unitTabs(units[i]).forEach(t =>
       T('Unidad ' + (i + 1) + ': ' + t, () => { activeScreen = 'unit'; activeUnit = i; activeTab = t; renderUnit(); }));
   }
   T('Exportar grupo CSV', () => exportGroupCsv());
@@ -107,6 +108,44 @@ const tests = `
   setV('associatePct', 30); setV('initialCost', 90000); setV('associateProfit', 60000); setV('associateDividends', 12000);
   calculateSimulator(units[3]);
   chk('Simulador U4: saldo final 104400', document.getElementById('simResult').innerHTML.includes(money(104400)));
+
+  // Papel de trabajo: la aritmetica se verifica sobre las funciones de calculo.
+  const wsDefaults = (uid) => {
+    const d = {};
+    WORKSHEETS[uid].grupos.forEach(([, campos]) => campos.forEach(([k, , v]) => { d[k] = v; }));
+    return d;
+  };
+
+  const d3 = wsDefaults('u3');
+  d3.metodoPNC = 'proporcional';
+  const r3 = worksheetU3Calc(d3);
+  chk('Consolidacion: plusvalia 16000 (PNC proporcional)', r3.plusvalia === 16000, r3.plusvalia);
+  chk('Consolidacion: PNC inicial 40000', r3.pncInicial === 40000, r3.pncInicial);
+  chk('Consolidacion: PNC a la fecha de consolidacion 46000', r3.pncFinal === 46000, r3.pncFinal);
+  chk('Consolidacion: la matriz cuadra', r3.cuadraMatriz);
+  chk('Consolidacion: la subsidiaria cuadra', r3.cuadraSub);
+  chk('Consolidacion: la hoja de trabajo cuadra', r3.cuadraConsolidado, r3.cActivos + ' vs ' + r3.cPP);
+  chk('Consolidacion: total consolidado 923000', r3.cActivos === 923000, r3.cActivos);
+
+  const d3vr = Object.assign({}, d3, { metodoPNC: 'razonable' });
+  const r3vr = worksheetU3Calc(d3vr);
+  chk('Consolidacion: plusvalia completa 20000 (PNC a valor razonable)', r3vr.plusvalia === 20000, r3vr.plusvalia);
+  chk('Consolidacion: cuadra con PNC a valor razonable', r3vr.cuadraConsolidado);
+  chk('Consolidacion: plusvalia completa mayor que la parcial', r3vr.plusvalia > r3.plusvalia);
+
+  // Sin utilidad no realizada ni saldos reciprocos el consolidado tambien debe cuadrar.
+  const r3limpio = worksheetU3Calc(Object.assign({}, d3, { reciproco: 0, utilNoRealizada: 0 }));
+  chk('Consolidacion: cuadra sin ajustes intragrupo', r3limpio.cuadraConsolidado);
+
+  const d2 = wsDefaults('u2');
+  const r2 = worksheetU2Calc(d2);
+  chk('Combinacion: cuentas reciprocas conciliadas', r2.conciliado, r2.difConciliacion);
+  chk('Combinacion: casa central cuadra', r2.cuadraCasaCentral);
+  chk('Combinacion: sucursal cuadra', r2.cuadraSucursal);
+  chk('Combinacion: el estado combinado cuadra', r2.cuadraCombinado, r2.kActivos + ' vs ' + r2.kPP);
+  chk('Combinacion: total combinado 361000', r2.kActivos === 361000, r2.kActivos);
+  const r2mal = worksheetU2Calc(Object.assign({}, d2, { transito: 0 }));
+  chk('Combinacion: sin conciliar el transito, el papel NO cuadra', !r2mal.cuadraCombinado && !r2mal.conciliado);
 
   let cuadran = true, mal = '';
   casos.forEach(c => c.asientos.forEach(a => {
