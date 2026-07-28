@@ -109,6 +109,36 @@ const tests = `
   calculateSimulator(units[3]);
   chk('Simulador U4: saldo final 104400', document.getElementById('simResult').innerHTML.includes(money(104400)));
 
+  // Respaldo e importacion
+  T('Respaldo del perfil activo', () => exportBackup([activeProfile], 'respaldo.json'));
+  chk('parseBackup rechaza JSON invalido', !!parseBackup('{no es json').error);
+  chk('parseBackup rechaza el resumen de grupo (arreglo)', !!parseBackup('[{"perfil":"x"}]').error);
+  chk('parseBackup rechaza archivo sin perfiles', !!parseBackup('{"perfiles":{}}').error);
+
+  T('Ida y vuelta del respaldo', () => {
+    const p0 = profile();
+    p0.notes.u1 = 'nota de prueba para el respaldo';
+    const texto = JSON.stringify(backupPayload([activeProfile]));
+    const leido = parseBackup(texto);
+    if (leido.error) throw new Error(leido.error);
+    // Se importa con otro nombre para no depender de la resolucion de conflictos.
+    const clon = {}; clon['Perfil importado'] = JSON.parse(JSON.stringify(leido.perfiles[activeProfile]));
+    const res = mergeProfiles(clon);
+    if (res.nuevos !== 1) throw new Error('no se importo como perfil nuevo');
+    if (store.profiles['Perfil importado'].notes.u1 !== 'nota de prueba para el respaldo') throw new Error('el progreso no viajo en el respaldo');
+  });
+
+  chk('El respaldo acepta tambien el volcado con clave "profiles"', !parseBackup('{"profiles":{"A":{"role":"estudiante"}}}').error);
+  chk('normalizeProfile completa la estructura', (() => {
+    const n = normalizeProfile({});
+    return !!(n.notes && n.quiz && n.worksheet && n.quizAttempts && n.role === 'estudiante');
+  })());
+
+  T('Constancia bloqueada bajo el 100%', () => { activeProfile = 'Estudiante demo'; ensureProfile(); printCertificate(); });
+  chk('Encabezado del curso se arma sin datos', typeof cursoHeaderHtml({}) === 'string');
+  chk('Grafico de avance genera una barra por unidad',
+    (avanceChartHtml(profile()).match(/bar-row/g) || []).length === units.length);
+
   // Papel de trabajo: la aritmetica se verifica sobre las funciones de calculo.
   const wsDefaults = (uid) => {
     const d = {};

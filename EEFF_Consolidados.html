@@ -1138,6 +1138,9 @@
     <div class="backdrop" id="backdrop"></div>
   </div>
 
+  <!-- Selector de archivos para importar respaldos (se abre desde el Reporte). -->
+  <input type="file" id="importFile" accept="application/json,.json" multiple style="display:none" aria-hidden="true" tabindex="-1">
+
   <script id="appScript">
     const units = [
       {
@@ -2274,36 +2277,42 @@
     // Normaliza un store de cualquier version conocida a la version actual.
     // v1 -> v2: se agregan intentos de autoevaluacion (quizAttempts), resultados
     // del examen integrador (exam) y datos institucionales del reporte (curso).
+    // Normaliza un perfil suelto (propio o importado) a la estructura vigente.
+    function normalizeProfile(p) {
+      if (!p || typeof p !== "object") return null;
+      if (!p.notes) p.notes = {};
+      if (!p.quiz) p.quiz = {};
+      if (!p.complete) p.complete = {};
+      if (!p.activity) p.activity = {};
+      if (!p.rubric) p.rubric = {};
+      if (!p.quizAttempts) p.quizAttempts = {};
+      if (!p.worksheet) p.worksheet = {};
+      if (!p.exam) p.exam = null;
+      if (!p.role) p.role = "estudiante";
+      // v1 guardaba las respuestas como arreglo indexado por pregunta.
+      // Se convierte a ronda con orden explicito, conservando lo respondido.
+      Object.keys(p.quiz).forEach(uid => {
+        const q = p.quiz[uid];
+        if (Array.isArray(q)) {
+          const orden = [];
+          const respuestas = {};
+          q.forEach((valor, i) => {
+            if (valor !== undefined && valor !== null) { orden.push(i); respuestas[i] = valor; }
+          });
+          p.quiz[uid] = { orden, opciones: {}, respuestas };
+        } else if (!q || typeof q !== "object" || !Array.isArray(q.orden)) {
+          delete p.quiz[uid];
+        }
+      });
+      return p;
+    }
+
     function migrateStore(data) {
       const s = (data && typeof data === "object") ? data : {};
       if (!s.profiles || typeof s.profiles !== "object") s.profiles = {};
       Object.keys(s.profiles).forEach(name => {
-        const p = s.profiles[name];
-        if (!p || typeof p !== "object") { delete s.profiles[name]; return; }
-        if (!p.notes) p.notes = {};
-        if (!p.quiz) p.quiz = {};
-        if (!p.complete) p.complete = {};
-        if (!p.activity) p.activity = {};
-        if (!p.rubric) p.rubric = {};
-        if (!p.quizAttempts) p.quizAttempts = {};
-        if (!p.worksheet) p.worksheet = {};
-        if (!p.exam) p.exam = null;
-        if (!p.role) p.role = "estudiante";
-        // v1 guardaba las respuestas como arreglo indexado por pregunta.
-        // Se convierte a ronda con orden explicito, conservando lo respondido.
-        Object.keys(p.quiz).forEach(uid => {
-          const q = p.quiz[uid];
-          if (Array.isArray(q)) {
-            const orden = [];
-            const respuestas = {};
-            q.forEach((valor, i) => {
-              if (valor !== undefined && valor !== null) { orden.push(i); respuestas[i] = valor; }
-            });
-            p.quiz[uid] = { orden, opciones: {}, respuestas };
-          } else if (!q || typeof q !== "object" || !Array.isArray(q.orden)) {
-            delete p.quiz[uid];
-          }
-        });
+        const p = normalizeProfile(s.profiles[name]);
+        if (!p) delete s.profiles[name];
       });
       if (!s.curso || typeof s.curso !== "object") {
         s.curso = { institucion: "", curso: "", grupo: "", docente: "", periodo: "" };
@@ -3994,19 +4003,116 @@
       });
     }
 
+    // ===== Encabezado institucional del reporte =====
+    // Se guarda en el store (es del curso, no de un estudiante) y encabeza tanto
+    // el reporte impreso como la constancia.
+    const CURSO_CAMPOS = [
+      ["institucion", "Institucion"],
+      ["curso", "Curso"],
+      ["grupo", "Grupo"],
+      ["docente", "Docente"],
+      ["periodo", "Periodo"]
+    ];
+
+    function cursoLinea(c) {
+      return CURSO_CAMPOS.map(([k]) => (c || {})[k]).filter(Boolean).join(" &middot; ");
+    }
+
+    function cursoHeaderHtml(c) {
+      const linea = cursoLinea(c);
+      return `
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-head">
+            <h3>${linea ? escapeHtml(String(linea).replace(/ &middot; /g, " - ")) : "Datos del curso"}</h3>
+            <span class="badge">${new Date().toLocaleDateString("es-CR")}</span>
+          </div>
+          <div class="panel-body">
+            <details ${linea ? "" : "open"}>
+              <summary style="cursor:pointer;font-weight:700;color:var(--blue)">${linea ? "Editar datos del curso" : "Complete los datos del curso para el reporte y la constancia"}</summary>
+              <div class="form-grid" style="margin-top:10px">
+                ${CURSO_CAMPOS.map(([k, label]) => `
+                  <label>
+                    <span class="small-label" style="color:var(--muted)">${label}</span>
+                    <input id="curso-${k}" type="text" value="${escapeHtml((c || {})[k] || "")}" placeholder="${label}">
+                  </label>
+                `).join("")}
+              </div>
+              <div style="margin-top:10px"><button class="primary" id="saveCurso">Guardar datos del curso</button></div>
+            </details>
+          </div>
+        </div>
+      `;
+    }
+
+    // Grafico de barras de avance por unidad. Se construye con HTML y CSS para
+    // que funcione sin dependencias y se imprima igual que el resto del reporte.
+    function avanceChartHtml(p) {
+      const filas = units.map((u, i) => {
+        const v = unitProgress(u, p);
+        return `
+          <div class="bar-row">
+            <span>${i + 1}. ${u.short}</span>
+            <span class="bar-track"><span class="bar-fill" style="width:${v}%"></span></span>
+            <strong>${v}%</strong>
+          </div>
+        `;
+      }).join("");
+      const etiqueta = units.map((u, i) => `${u.short}: ${unitProgress(u, p)}%`).join(", ");
+      return `<div class="bar-chart" role="img" aria-label="Avance por unidad. ${etiqueta}.">${filas}</div>`;
+    }
+
+    function printCertificate() {
+      const p = profile();
+      const c = store.curso || {};
+      const rate = completionRate();
+      if (rate < 100) { toast("La constancia requiere 100% de avance"); return; }
+      const correctas = units.reduce((s, u) => s + correctCount(u, p), 0);
+      const preguntas = units.reduce((s, u) => s + quizTotal(u, p), 0);
+      const sheet = document.createElement("div");
+      sheet.className = "print-sheet";
+      sheet.innerHTML = `
+        <div class="cert">
+          <h2>Constancia de finalizacion</h2>
+          <p>${escapeHtml(c.institucion || "")}</p>
+          <p class="footer-note" style="margin:0">Se hace constar que</p>
+          <div class="cert-name">${escapeHtml(activeProfile)}</div>
+          <p>completo la totalidad de las actividades del modulo <strong>${escapeHtml(c.curso || "Contabilidad Avanzada - EEFF Consolidados")}</strong>,
+          integrado por cuatro unidades bajo NIIF completas: expansion empresarial, agencias y sucursales,
+          inversion en subsidiarias y empresas asociadas.</p>
+          <p class="footer-note">Avance registrado: ${rate}% &middot; Autoevaluaciones: ${correctas} de ${preguntas} respuestas correctas${p.exam ? ` &middot; Examen integrador: ${p.exam.nota}% (${p.exam.aprobado ? "aprobado" : "no aprobado"})` : ""}.</p>
+          <p class="footer-note">${[c.grupo && `Grupo: ${c.grupo}`, c.periodo && `Periodo: ${c.periodo}`].filter(Boolean).map(escapeHtml).join(" &middot; ")}</p>
+          <div class="cert-sign">
+            <div>${escapeHtml(c.docente || "Docente")}</div>
+            <div>Fecha: ${new Date().toLocaleDateString("es-CR")}</div>
+          </div>
+          <p class="footer-note" style="margin-top:22px">Documento generado por la herramienta educativa EEFF Consolidados a partir del avance registrado en este navegador. Es un comprobante de practica y no sustituye la certificacion oficial de la institucion.</p>
+        </div>
+      `;
+      document.body.appendChild(sheet);
+      document.body.classList.add("printing-cert");
+      window.print();
+      document.body.classList.remove("printing-cert");
+      sheet.remove();
+    }
+
     function renderReport() {
       const p = profile();
       $("screenTitle").textContent = "Reporte de avance";
       $("screenSubtitle").textContent = "Evaluacion formativa y trazabilidad local.";
       const showGroup = activeRole === "docente" || activeRole === "administrador";
+      const c = store.curso || {};
+      const rate = completionRate();
       $("reportScreen").innerHTML = `
+        ${cursoHeaderHtml(c)}
         <div class="panel">
           <div class="panel-head">
             <h3>Resumen de ${escapeHtml(activeProfile)}</h3>
-            <span class="badge blue">${completionRate()}% avance</span>
+            <span class="badge blue">${rate}% avance</span>
           </div>
           <div class="panel-body">
-            <div class="table-wrap">
+            <h4 style="margin:0 0 8px">Avance por unidad</h4>
+            ${avanceChartHtml(p)}
+            <div class="table-wrap" style="margin-top:16px">
               <table class="journal">
                 <thead><tr><th>Unidad</th><th>Leccion</th><th>Autoevaluacion</th><th>Notas</th></tr></thead>
                 <tbody>
@@ -4018,11 +4124,15 @@
                 </tbody>
               </table>
             </div>
+            ${p.exam ? `<p class="${p.exam.aprobado ? "info" : "warning"}" style="margin-top:12px"><strong>Examen integrador.</strong> ${escapeHtml(p.exam.fecha)}: ${p.exam.correctas}/${p.exam.total} correctas (${p.exam.nota}%), ${p.exam.aprobado ? "aprobado" : "no aprobado"}.</p>` : `<p class="footer-note" style="margin-top:12px">Examen integrador: sin presentar.</p>`}
             <div class="toolbar" style="justify-content:flex-start;margin-top:12px">
+              <button id="backupProfile">Descargar respaldo (JSON)</button>
+              <button data-import id="importProfile">Importar respaldo</button>
               <button id="renameActiveProfile">Renombrar perfil</button>
               <button id="resetActiveProfile">Reiniciar progreso</button>
               <button id="deleteActiveProfile" class="del-profile">Eliminar perfil</button>
             </div>
+            <p class="footer-note">El respaldo contiene todo su progreso: conceptos, ejercicios, papeles de trabajo, notas, autoevaluaciones y examen. Guardelo si va a cambiar de equipo o de navegador.</p>
             <div class="unit-grid" style="margin-top:12px">
               <div class="mini">
                 <h4>Rubrica formativa</h4>
@@ -4038,7 +4148,13 @@
               <div class="mini">
                 <h4>Retroalimentacion sugerida</h4>
                 <p>${feedbackText()}</p>
-                <button id="printReport">Imprimir o guardar PDF</button>
+                <div class="panel-actions">
+                  <button id="printReport">Imprimir o guardar PDF</button>
+                  <button id="printCert" class="primary" ${rate === 100 ? "" : "disabled title=\"Disponible al alcanzar el 100% de avance\""}>Constancia de finalizacion</button>
+                </div>
+                ${rate === 100
+                  ? `<p class="footer-note">Ha completado las cuatro unidades. Puede generar su constancia.</p>`
+                  : `<p class="footer-note">La constancia se habilita al llegar al 100% de avance (falta ${100 - rate}%).</p>`}
               </div>
             </div>
           </div>
@@ -4058,10 +4174,29 @@
         toast("Observacion del docente guardada");
       });
       $("printReport").addEventListener("click", () => window.print());
+      $("printCert").addEventListener("click", printCertificate);
+      $("saveCurso").addEventListener("click", () => {
+        if (!store.curso) store.curso = {};
+        CURSO_CAMPOS.forEach(([k]) => { store.curso[k] = $("curso-" + k).value.trim(); });
+        writeStore();
+        render();
+        toast("Datos del curso guardados");
+      });
+      $("backupProfile").addEventListener("click", () => {
+        const slug = activeProfile.replace(/[^\w\-]+/g, "_").toLowerCase();
+        exportBackup([activeProfile], `eeff_respaldo_${slug}.json`);
+      });
+      document.querySelectorAll("[data-import]").forEach(btn => {
+        btn.addEventListener("click", pedirArchivos);
+      });
       const csvBtn = $("exportGroupCsv");
       if (csvBtn) csvBtn.addEventListener("click", exportGroupCsv);
       const jsonBtn = $("exportGroupJson");
       if (jsonBtn) jsonBtn.addEventListener("click", exportGroupJson);
+      const backupGroupBtn = $("backupGroup");
+      if (backupGroupBtn) backupGroupBtn.addEventListener("click", () => {
+        exportBackup(Object.keys(store.profiles || {}), "eeff_respaldo_grupo.json");
+      });
       const renameActive = $("renameActiveProfile");
       if (renameActive) renameActive.addEventListener("click", () => renameProfileByName(activeProfile));
       const resetActive = $("resetActiveProfile");
@@ -4148,7 +4283,10 @@
             <div class="toolbar" style="justify-content:flex-start;margin-top:12px">
               <button id="exportGroupCsv">Exportar grupo (CSV)</button>
               <button id="exportGroupJson">Exportar grupo (JSON)</button>
+              <button id="backupGroup">Respaldo completo del grupo</button>
+              <button data-import class="primary">Importar respaldos de estudiantes</button>
             </div>
+            <p class="footer-note">Para reunir el avance del grupo: cada estudiante descarga su respaldo desde el Reporte y se lo entrega; aqui puede importar varios archivos a la vez. El CSV y el JSON de arriba contienen solo los totales, utiles para la hoja de calificaciones.</p>
           </div>
         </div>
       `;
@@ -4160,7 +4298,7 @@
 
     function exportGroupCsv() {
       const names = Object.keys(store.profiles || {});
-      const header = ["Perfil", "Rol", "Avance %", "Unidades revisadas", "Respuestas correctas", "Unidades con notas", "Observacion docente"];
+      const header = ["Perfil", "Rol", "Avance %", "Unidades revisadas", "Respuestas correctas", "Intentos", "Examen %", "Examen aprobado", "Unidades con notas", "Observacion docente", "Actualizado"];
       const lines = [header.map(csvCell).join(",")];
       names.forEach(name => {
         const pr = store.profiles[name];
@@ -4171,8 +4309,12 @@
           stats.rate,
           `${stats.reviewed}/4`,
           `${stats.correct}/${stats.preguntas}`,
+          stats.intentos,
+          stats.examen ? stats.examen.nota : "",
+          stats.examen ? (stats.examen.aprobado ? "si" : "no") : "",
           `${stats.notes}/4`,
-          (pr.rubricNotes || "").replace(/\r?\n/g, " ")
+          (pr.rubricNotes || "").replace(/\r?\n/g, " "),
+          pr.updatedAt || ""
         ].map(csvCell).join(","));
       });
       downloadBlob("﻿" + lines.join("\r\n"), "eeff_consolidados_grupo.csv", "text/csv;charset=utf-8");
@@ -4189,12 +4331,138 @@
           avance: stats.rate,
           unidadesRevisadas: stats.reviewed,
           respuestasCorrectas: stats.correct,
+          preguntasPlanteadas: stats.preguntas,
+          intentosAutoevaluacion: stats.intentos,
+          examen: stats.examen ? { nota: stats.examen.nota, correctas: stats.examen.correctas, total: stats.examen.total, aprobado: stats.examen.aprobado, fecha: stats.examen.fecha } : null,
           unidadesConNotas: stats.notes,
           observacionDocente: pr.rubricNotes || "",
           actualizado: pr.updatedAt || ""
         };
       });
       downloadBlob(JSON.stringify(data, null, 2), "eeff_consolidados_grupo.json", "application/json");
+    }
+
+    // ===== Respaldo e importacion =====
+    // El respaldo lleva el progreso completo (no solo los totales), de modo que
+    // el estudiante pueda continuar en otro equipo y el docente pueda reunir el
+    // avance de varios estudiantes en un mismo navegador.
+
+    function backupPayload(nombres) {
+      const perfiles = {};
+      nombres.forEach(n => { if (store.profiles[n]) perfiles[n] = store.profiles[n]; });
+      return {
+        app: "EEFF Consolidados",
+        tipo: "respaldo",
+        schemaVersion: SCHEMA_VERSION,
+        exportado: new Date().toISOString(),
+        curso: store.curso || {},
+        perfiles
+      };
+    }
+
+    function exportBackup(nombres, archivo) {
+      downloadBlob(JSON.stringify(backupPayload(nombres), null, 2), archivo, "application/json");
+    }
+
+    // Interpreta el contenido de un archivo. Acepta el respaldo propio y tambien
+    // el volcado completo de datos locales (clave "profiles").
+    function parseBackup(texto) {
+      let data;
+      try {
+        data = JSON.parse(texto);
+      } catch {
+        return { error: "El archivo no es un JSON valido." };
+      }
+      if (Array.isArray(data)) {
+        return { error: "Ese archivo es un resumen de grupo (solo totales): no contiene el progreso. Utilice el respaldo completo." };
+      }
+      const perfiles = (data && (data.perfiles || data.profiles)) || null;
+      if (!perfiles || typeof perfiles !== "object" || !Object.keys(perfiles).length) {
+        return { error: "El archivo no contiene perfiles con progreso." };
+      }
+      return { perfiles, curso: data.curso || null };
+    }
+
+    function nombreLibre(base) {
+      let intento = `${base} (importado)`;
+      let i = 2;
+      while (store.profiles[intento]) { intento = `${base} (importado ${i})`; i++; }
+      return intento;
+    }
+
+    // Fusiona los perfiles entrantes. Ante un nombre repetido consulta si se
+    // reemplaza; si no, se conserva el existente y el entrante entra renombrado.
+    function mergeProfiles(perfiles) {
+      const resumen = { nuevos: 0, reemplazados: 0, duplicados: 0, invalidos: 0 };
+      Object.keys(perfiles).forEach(nombre => {
+        const entrante = normalizeProfile(perfiles[nombre]);
+        if (!entrante) { resumen.invalidos++; return; }
+        if (!store.profiles[nombre]) {
+          store.profiles[nombre] = entrante;
+          resumen.nuevos++;
+          return;
+        }
+        const actual = store.profiles[nombre];
+        const detalle = `Existente: ${actual.updatedAt || "sin fecha"} | Archivo: ${entrante.updatedAt || "sin fecha"}`;
+        if (confirm(`El perfil "${nombre}" ya existe en este navegador.\n${detalle}\n\nAceptar: reemplazarlo con el del archivo.\nCancelar: conservar ambos (el del archivo entra renombrado).`)) {
+          store.profiles[nombre] = entrante;
+          resumen.reemplazados++;
+        } else {
+          store.profiles[nombreLibre(nombre)] = entrante;
+          resumen.duplicados++;
+        }
+      });
+      return resumen;
+    }
+
+    function importarArchivos(lista) {
+      const archivos = Array.prototype.slice.call(lista || []);
+      if (!archivos.length) return;
+      const totales = { nuevos: 0, reemplazados: 0, duplicados: 0, invalidos: 0, errores: [] };
+      let pendientes = archivos.length;
+
+      const terminar = () => {
+        ensureProfile();
+        writeStore();
+        render();
+        const partes = [];
+        if (totales.nuevos) partes.push(`${totales.nuevos} nuevo(s)`);
+        if (totales.reemplazados) partes.push(`${totales.reemplazados} reemplazado(s)`);
+        if (totales.duplicados) partes.push(`${totales.duplicados} conservado(s) aparte`);
+        if (totales.invalidos) partes.push(`${totales.invalidos} descartado(s)`);
+        const mensaje = partes.length ? `Perfiles importados: ${partes.join(", ")}.` : "No se importo ningun perfil.";
+        toast(mensaje);
+        if (totales.errores.length) alert(`${mensaje}\n\nArchivos con problema:\n- ${totales.errores.join("\n- ")}`);
+      };
+
+      archivos.forEach(archivo => {
+        const lector = new FileReader();
+        lector.onload = () => {
+          const r = parseBackup(String(lector.result || ""));
+          if (r.error) totales.errores.push(`${archivo.name}: ${r.error}`);
+          else {
+            const res = mergeProfiles(r.perfiles);
+            totales.nuevos += res.nuevos;
+            totales.reemplazados += res.reemplazados;
+            totales.duplicados += res.duplicados;
+            totales.invalidos += res.invalidos;
+            if (r.curso && !(store.curso && store.curso.curso)) store.curso = r.curso;
+          }
+          if (--pendientes === 0) terminar();
+        };
+        lector.onerror = () => {
+          totales.errores.push(`${archivo.name}: no se pudo leer el archivo.`);
+          if (--pendientes === 0) terminar();
+        };
+        lector.readAsText(archivo);
+      });
+    }
+
+    function pedirArchivos() {
+      const input = $("importFile");
+      if (!input) return;
+      input.value = "";
+      input.click();
     }
 
     function downloadBlob(content, filename, type) {
@@ -4554,6 +4822,10 @@
       writeStore();
       render();
       toast("Perfil guardado: " + activeProfile);
+    });
+
+    $("importFile").addEventListener("change", (e) => {
+      importarArchivos(e.target && e.target.files);
     });
 
     $("menuToggle").addEventListener("click", () => toggleSidebar());
